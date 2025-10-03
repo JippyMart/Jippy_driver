@@ -69,8 +69,17 @@ class NotificationService {
   }
 
   static getToken() async {
-    String? token = await FirebaseMessaging.instance.getToken();
-    return token ?? '';
+    try {
+      String? token = await FirebaseMessaging.instance.getToken()
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        log("getToken timeout - returning empty string");
+        return null;
+      });
+      return token ?? '';
+    } catch (e) {
+      log("getToken error: $e - returning empty string");
+      return '';
+    }
   }
 
   void display(RemoteMessage message) async {

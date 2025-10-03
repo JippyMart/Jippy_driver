@@ -59,7 +59,16 @@ class FireStoreUtils {
   static Future<bool> isLogin() async {
     bool isLogin = false;
     if (FirebaseAuth.instance.currentUser != null) {
-      isLogin = await userExistOrNot(FirebaseAuth.instance.currentUser!.uid);
+      try {
+        isLogin = await userExistOrNot(FirebaseAuth.instance.currentUser!.uid)
+            .timeout(const Duration(seconds: 10), onTimeout: () {
+          log("isLogin timeout - returning false");
+          return false;
+        });
+      } catch (e) {
+        log("isLogin error: $e - returning false");
+        isLogin = false;
+      }
     } else {
       isLogin = false;
     }
@@ -69,35 +78,48 @@ class FireStoreUtils {
   static Future<bool> userExistOrNot(String uid) async {
     bool isExist = false;
 
-    await fireStore.collection(CollectionName.users).doc(uid).get().then(
-      (value) {
-        if (value.exists) {
-          isExist = true;
-        } else {
-          isExist = false;
-        }
-      },
-    ).catchError((error) {
-      log("Failed to check user exist: $error");
+    try {
+      await fireStore.collection(CollectionName.users).doc(uid).get().then(
+        (value) {
+          if (value.exists) {
+            isExist = true;
+          } else {
+            isExist = false;
+          }
+        },
+      ).catchError((error) {
+        log("Failed to check user exist: $error");
+        isExist = false;
+      });
+    } catch (e) {
+      log("userExistOrNot error: $e");
       isExist = false;
-    });
+    }
     return isExist;
   }
 
   static Future<UserModel?> getUserProfile(String uuid) async {
     UserModel? userModel;
-    await fireStore
-        .collection(CollectionName.users)
-        .doc(uuid)
-        .get()
-        .then((value) {
-      if (value.exists) {
-        userModel = UserModel.fromJson(value.data()!);
-      }
-    }).catchError((error) {
-      log("Failed to update user: $error");
+    try {
+      await fireStore
+          .collection(CollectionName.users)
+          .doc(uuid)
+          .get()
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        log("getUserProfile timeout");
+        throw TimeoutException('getUserProfile timeout', const Duration(seconds: 10));
+      }).then((value) {
+        if (value.exists) {
+          userModel = UserModel.fromJson(value.data()!);
+        }
+      }).catchError((error) {
+        log("Failed to get user profile: $error");
+        userModel = null;
+      });
+    } catch (e) {
+      log("getUserProfile error: $e");
       userModel = null;
-    });
+    }
     return userModel;
   }
 
@@ -192,17 +214,22 @@ class FireStoreUtils {
           .collection(CollectionName.settings)
           .doc("globalSettings")
           .get()
-          .then((value) async {
-        Constant.orderRingtoneUrl = value.data()?['order_ringtone_url'] ?? '';
-        Constant.isSelfDeliveryFeature =
-            value.data()!['isSelfDelivery'] ?? false;
-        Preferences.setString(
-            Preferences.orderRingtone, Constant.orderRingtoneUrl);
-        AppThemeData.driverApp300 = Color(int.parse(
-            value.data()!['app_driver_color'].replaceFirst("#", "0xff")));
+          .timeout(const Duration(seconds: 15), onTimeout: () {
+        log("getSettings timeout for globalSettings");
+        throw TimeoutException('getSettings timeout', const Duration(seconds: 15));
+      }).then((value) async {
+        if (value.exists && value.data() != null) {
+          Constant.orderRingtoneUrl = value.data()?['order_ringtone_url'] ?? '';
+          Constant.isSelfDeliveryFeature =
+              value.data()!['isSelfDelivery'] ?? false;
+          Preferences.setString(
+              Preferences.orderRingtone, Constant.orderRingtoneUrl);
+          AppThemeData.driverApp300 = Color(int.parse(
+              value.data()!['app_driver_color'].replaceFirst("#", "0xff")));
 
-        if (Constant.orderRingtoneUrl.isNotEmpty) {
-          await AudioPlayerService.initAudio();
+          if (Constant.orderRingtoneUrl.isNotEmpty) {
+            await AudioPlayerService.initAudio();
+          }
         }
       });
 
