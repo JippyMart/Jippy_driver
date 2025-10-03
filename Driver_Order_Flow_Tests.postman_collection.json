@@ -1,0 +1,391 @@
+{
+	"info": {
+		"_postman_id": "driver-order-flow-tests",
+		"name": "Driver Order Flow Tests",
+		"description": "Complete test collection for driver order flow using Firestore REST API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Get Order Details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{firebase_auth_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://firestore.googleapis.com/v1/projects/{{firebase_project_id}}/databases/(default)/documents/restaurant_orders/{{test_order_id}}",
+					"protocol": "https",
+					"host": [
+						"firestore",
+						"googleapis",
+						"com"
+					],
+					"path": [
+						"v1",
+						"projects",
+						"{{firebase_project_id}}",
+						"databases",
+						"(default)",
+						"documents",
+						"restaurant_orders",
+						"{{test_order_id}}"
+					]
+				},
+				"description": "Get current order details to verify status"
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('fields');",
+							"});",
+							"",
+							"pm.test(\"Log order status\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    if (jsonData.fields && jsonData.fields.status) {",
+							"        console.log(\"Current order status:\", jsonData.fields.status.stringValue);",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Update Status - Driver Accepted",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{firebase_auth_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fields\": {\n    \"status\": {\n      \"stringValue\": \"Driver Accepted\"\n    },\n    \"driverID\": {\n      \"stringValue\": \"{{test_driver_id}}\"\n    },\n    \"driver\": {\n      \"mapValue\": {\n        \"fields\": {\n          \"id\": {\n            \"stringValue\": \"{{test_driver_id}}\"\n          },\n          \"firstName\": {\n            \"stringValue\": \"Test Driver\"\n          },\n          \"phoneNumber\": {\n            \"stringValue\": \"+1234567890\"\n          }\n        }\n      }\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "https://firestore.googleapis.com/v1/projects/{{firebase_project_id}}/databases/(default)/documents/restaurant_orders/{{test_order_id}}?updateMask.fieldPaths=status&updateMask.fieldPaths=driverID&updateMask.fieldPaths=driver",
+					"protocol": "https",
+					"host": [
+						"firestore",
+						"googleapis",
+						"com"
+					],
+					"path": [
+						"v1",
+						"projects",
+						"{{firebase_project_id}}",
+						"databases",
+						"(default)",
+						"documents",
+						"restaurant_orders",
+						"{{test_order_id}}"
+					],
+					"query": [
+						{
+							"key": "updateMask.fieldPaths",
+							"value": "status"
+						},
+						{
+							"key": "updateMask.fieldPaths",
+							"value": "driverID"
+						},
+						{
+							"key": "updateMask.fieldPaths",
+							"value": "driver"
+						}
+					]
+				},
+				"description": "Update order status to Driver Accepted - should show 'Reached restaurant for Pickup' button"
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Status updated to Driver Accepted\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.fields.status.stringValue).to.eql(\"Driver Accepted\");",
+							"});",
+							"",
+							"console.log(\"✅ Order status updated to Driver Accepted\");",
+							"console.log(\"📱 Expected: 'Reached restaurant for Pickup' button should appear\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Update Status - Order Shipped",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{firebase_auth_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fields\": {\n    \"status\": {\n      \"stringValue\": \"Order Shipped\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "https://firestore.googleapis.com/v1/projects/{{firebase_project_id}}/databases/(default)/documents/restaurant_orders/{{test_order_id}}?updateMask.fieldPaths=status",
+					"protocol": "https",
+					"host": [
+						"firestore",
+						"googleapis",
+						"com"
+					],
+					"path": [
+						"v1",
+						"projects",
+						"{{firebase_project_id}}",
+						"databases",
+						"(default)",
+						"documents",
+						"restaurant_orders",
+						"{{test_order_id}}"
+					],
+					"query": [
+						{
+							"key": "updateMask.fieldPaths",
+							"value": "status"
+						}
+					]
+				},
+				"description": "Update order status to Order Shipped - should show 'Reached restaurant for Pickup' button"
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Status updated to Order Shipped\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.fields.status.stringValue).to.eql(\"Order Shipped\");",
+							"});",
+							"",
+							"console.log(\"✅ Order status updated to Order Shipped\");",
+							"console.log(\"📱 Expected: 'Reached restaurant for Pickup' button should appear\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Update Status - In Transit",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{firebase_auth_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fields\": {\n    \"status\": {\n      \"stringValue\": \"In Transit\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "https://firestore.googleapis.com/v1/projects/{{firebase_project_id}}/databases/(default)/documents/restaurant_orders/{{test_order_id}}?updateMask.fieldPaths=status",
+					"protocol": "https",
+					"host": [
+						"firestore",
+						"googleapis",
+						"com"
+					],
+					"path": [
+						"v1",
+						"projects",
+						"{{firebase_project_id}}",
+						"databases",
+						"(default)",
+						"documents",
+						"restaurant_orders",
+						"{{test_order_id}}"
+					],
+					"query": [
+						{
+							"key": "updateMask.fieldPaths",
+							"value": "status"
+						}
+					]
+				},
+				"description": "Update order status to In Transit - should show 'Reached Customer' button"
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Status updated to In Transit\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.fields.status.stringValue).to.eql(\"In Transit\");",
+							"});",
+							"",
+							"console.log(\"✅ Order status updated to In Transit\");",
+							"console.log(\"📱 Expected: 'Reached Customer' button should appear\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Update Status - Order Completed",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{firebase_auth_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"fields\": {\n    \"status\": {\n      \"stringValue\": \"Order Completed\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "https://firestore.googleapis.com/v1/projects/{{firebase_project_id}}/databases/(default)/documents/restaurant_orders/{{test_order_id}}?updateMask.fieldPaths=status",
+					"protocol": "https",
+					"host": [
+						"firestore",
+						"googleapis",
+						"com"
+					],
+					"path": [
+						"v1",
+						"projects",
+						"{{firebase_project_id}}",
+						"databases",
+						"(default)",
+						"documents",
+						"restaurant_orders",
+						"{{test_order_id}}"
+					],
+					"query": [
+						{
+							"key": "updateMask.fieldPaths",
+							"value": "status"
+						}
+					]
+				},
+				"description": "Update order status to Order Completed - should show completion screen"
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Status updated to Order Completed\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.fields.status.stringValue).to.eql(\"Order Completed\");",
+							"});",
+							"",
+							"console.log(\"✅ Order status updated to Order Completed\");",
+							"console.log(\"📱 Expected: Completion screen should appear\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set timestamp for testing",
+					"pm.environment.set(\"timestamp\", new Date().toISOString());"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "firebase_project_id",
+			"value": "jippymart-27c08",
+			"type": "string"
+		},
+		{
+			"key": "firebase_auth_token",
+			"value": "YOUR_FIREBASE_AUTH_TOKEN_HERE",
+			"type": "string"
+		},
+		{
+			"key": "test_order_id",
+			"value": "YOUR_TEST_ORDER_ID_HERE",
+			"type": "string"
+		},
+		{
+			"key": "test_driver_id",
+			"value": "YOUR_TEST_DRIVER_ID_HERE",
+			"type": "string"
+		}
+	]
+} 
