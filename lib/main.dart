@@ -27,17 +27,14 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
     // Initialize Play Integrity Service
     print('🚀 [Main] Initializing Play Integrity Service...');
     await PlayIntegrityService.initialize();
     print('🚀 [Main] ✅ Play Integrity Service initialized');
-    
     // Initialize Play Integrity Controller
     print('🚀 [Main] Initializing Play Integrity Controller...');
-    Get.put(PlayIntegrityController());
+    Get.put(PlayIntegrityController(),);
     print('🚀 [Main] ✅ Play Integrity Controller initialized');
-    
     await Preferences.initPref();
     runApp(const MyApp());
   }, (error, stackTrace) {});
