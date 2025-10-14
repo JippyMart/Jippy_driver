@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/send_notification.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart' as flutterMap;
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as location;
@@ -23,6 +25,182 @@ import 'package:driver/utils/app_logger.dart';
 // import 'package:driver/services/order_service.dart';
 
 class HomeController extends GetxController {
+
+
+  //NEW FUNCTIONS
+
+  RxDouble driverToRestaurantDistance = 0.0.obs;
+  RxDouble restaurantToCustomerDistance = 0.0.obs;
+  RxDouble driverToRestaurantDuration = 0.0.obs; // in minutes
+  RxDouble restaurantToCustomerDuration = 0.0.obs; // in minutes
+  RxDouble driverToRestaurantCharge = 0.0.obs;
+  RxDouble restaurantToCustomerCharge = 0.0.obs;
+  RxDouble totalCalculatedCharge = 0.0.obs;
+
+// Pricing constants
+  static const double DRIVER_TO_RESTAURANT_RATE_PER_KM = 2.0; // ₹2 per km
+  static const double RESTAURANT_TO_CUSTOMER_RATE_PER_KM = 7.0; // ₹7 per km
+
+  // Calculate distances and charges when order is accepted
+  Future<void> calculateOrderChargesInitial() async {
+    print(" calculateOrderChargesId ${currentOrder.value.id} ");
+    if (currentOrder.value.id == null) return;
+    try {
+      // Calculate driver to restaurant distance & duration
+      if (driverModel.value.location != null &&
+          currentOrder.value.vendor != null) {
+        await calculateDriverToRestaurantDetails();
+      }
+      if (currentOrder.value.vendor != null &&
+          currentOrder.value.address?.location != null) {
+        await calculateRestaurantToCustomerDetails();
+      }
+      calculateCharges();
+    } catch (e) {
+      print('Error calculating order charges: $e');
+    }
+  }
+  Future<void> calculateOrderCharges() async {
+    print(" calculateOrderChargesId ${currentOrder.value.id} ");
+    try {
+      // Calculate driver to restaurant distance & duration
+      if (driverModel.value.location != null &&
+          currentOrder.value.vendor != null) {
+        await calculateDriverToRestaurantDetails();
+      }
+      // Calculate restaurant to customer distance & duration
+      if (currentOrder.value.vendor != null &&
+          currentOrder.value.address?.location != null) {
+        await calculateRestaurantToCustomerDetails();
+      }
+      // Calculate charges
+      calculateCharges();
+      // Update the order with calculated charges
+      await updateOrderWithCalculatedCharges();
+    } catch (e) {
+      print('Error calculating order charges: $e');
+    }
+  }
+
+  // Calculate driver to restaurant details
+  // Future<void> calculateDriverToRestaurantDetails() async {
+  //   double distanceInMeters = Geolocator.distanceBetween(
+  //     driverModel.value.location!.latitude!,
+  //     driverModel.value.location!.longitude!,
+  //     currentOrder.value.vendor!.latitude ?? 0.0,
+  //     currentOrder.value.vendor!.longitude ?? 0.0,
+  //   );
+  //
+  //   // Convert to kilometers
+  //   driverToRestaurantDistance.value = distanceInMeters / 1000;
+  //
+  //   // Calculate duration (assuming average speed of 30 km/h)
+  //   driverToRestaurantDuration.value = (driverToRestaurantDistance.value / 30) * 60;
+  //
+  //   // Calculate charge
+  //   driverToRestaurantCharge.value = driverToRestaurantDistance.value * DRIVER_TO_RESTAURANT_RATE_PER_KM;
+  //   print(" ${driverToRestaurantCharge.value} calculateDriverToRestaurantDetails ");
+  //
+  // }
+  Future<void> calculateDriverToRestaurantDetails() async {
+    double distanceInMeters = Geolocator.distanceBetween(
+      driverModel.value.location!.latitude!,
+      driverModel.value.location!.longitude!,
+      currentOrder.value.vendor!.latitude ?? 0.0,
+      currentOrder.value.vendor!.longitude ?? 0.0,
+    );
+
+    // Convert to kilometers
+    driverToRestaurantDistance.value = distanceInMeters / 1000;
+
+    // Calculate duration (assuming average speed of 30 km/h)
+    driverToRestaurantDuration.value = (driverToRestaurantDistance.value / 30) * 60;
+
+    // Calculate charge and round to nearest integer
+    double charge = driverToRestaurantDistance.value * DRIVER_TO_RESTAURANT_RATE_PER_KM;
+    driverToRestaurantCharge.value = charge.round().toDouble();
+    print(" ${driverToRestaurantCharge.value} calculateDriverToRestaurantDetails ");
+  }
+
+  // Calculate restaurant to customer details
+  // Future<void> calculateRestaurantToCustomerDetails() async {
+  //   double distanceInMeters = Geolocator.distanceBetween(
+  //     currentOrder.value.vendor!.latitude ?? 0.0,
+  //     currentOrder.value.vendor!.longitude ?? 0.0,
+  //     currentOrder.value.address!.location!.latitude ?? 0.0,
+  //     currentOrder.value.address!.location!.longitude ?? 0.0,
+  //   );
+  //
+  //   // Convert to kilometers
+  //   restaurantToCustomerDistance.value = distanceInMeters / 1000;
+  //
+  //   // Calculate duration (assuming average speed of 30 km/h)
+  //   restaurantToCustomerDuration.value = (restaurantToCustomerDistance.value / 30) * 60;
+  //
+  //   // Calculate charge
+  //   restaurantToCustomerCharge.value = restaurantToCustomerDistance.value * RESTAURANT_TO_CUSTOMER_RATE_PER_KM;
+  //   print(" ${restaurantToCustomerCharge.value} calculateRestaurantToCustomerDetails ");
+  // }
+  Future<void> calculateRestaurantToCustomerDetails() async {
+    double distanceInMeters = Geolocator.distanceBetween(
+      currentOrder.value.vendor!.latitude ?? 0.0,
+      currentOrder.value.vendor!.longitude ?? 0.0,
+      currentOrder.value.address!.location!.latitude ?? 0.0,
+      currentOrder.value.address!.location!.longitude ?? 0.0,
+    );
+    // Convert to kilometers
+    restaurantToCustomerDistance.value = distanceInMeters / 1000;
+    // Calculate duration (assuming average speed of 30 km/h)
+    restaurantToCustomerDuration.value = (restaurantToCustomerDistance.value / 30) * 60;
+    // Calculate charge and round to nearest integer
+    double charge = restaurantToCustomerDistance.value * RESTAURANT_TO_CUSTOMER_RATE_PER_KM;
+    restaurantToCustomerCharge.value = charge.round().toDouble();
+    print(" ${restaurantToCustomerCharge.value} calculateRestaurantToCustomerDetails ");
+  }
+  // Calculate total charges
+  void calculateCharges() {
+    totalCalculatedCharge.value = driverToRestaurantCharge.value + restaurantToCustomerCharge.value;
+    print(" ${totalCalculatedCharge.value} calculateCharges ");
+  }
+  Map<String, dynamic> calculatedCharges={};
+  // Update order with calculated charges
+  Future<void> updateOrderWithCalculatedCharges() async {
+    // Create a map to store calculated charges
+    Map<String, dynamic> calculatedCharges = {
+      'driverToRestaurantDistance': driverToRestaurantDistance.value,
+      'driverToRestaurantDuration': driverToRestaurantDuration.value,
+      'driverToRestaurantCharge': driverToRestaurantCharge.value,
+      'restaurantToCustomerDistance': restaurantToCustomerDistance.value,
+      'restaurantToCustomerDuration': restaurantToCustomerDuration.value,
+      'restaurantToCustomerCharge': restaurantToCustomerCharge.value,
+      'totalCalculatedCharge': totalCalculatedCharge.value,
+      'calculatedAt': FieldValue.serverTimestamp(),
+    };
+    print( "${calculatedCharges} calculatedCharges");
+    // Update the order in Firestore
+    // await FireStoreUtils.fireStore
+    //     .collection(CollectionName.restaurantOrders)
+    //     .doc(currentOrder.value.id)
+    //     .update({
+    //   'calculatedCharges': calculatedCharges,
+    // });
+    // await FireStoreUtils.fireStore
+    //     .collection(CollectionName.restaurantOrders)
+    //     .doc(currentOrder.value.id)
+    //     .set({
+    //   'calculatedCharges': calculatedCharges,
+    // }, SetOptions(merge: true));
+    // Also update local order model
+    currentOrder.value.calculatedCharges = calculatedCharges;
+  }
+
+  // Get calculated charges for display
+  Map<String, dynamic>? getCalculatedCharges() {
+    return currentOrder.value.calculatedCharges;
+  }
+
+
+  //NEW FUNCTION IN DRIVER APPLICATION
   RxBool isLoading = true.obs;
   flutterMap.MapController osmMapController = flutterMap.MapController();
   RxList<flutterMap.Marker> osmMarkers = <flutterMap.Marker>[].obs;
@@ -62,6 +240,7 @@ class HomeController extends GetxController {
         return;
       }
       AppLogger.log('Attempting to assign order to driver', tag: 'Firestore');
+      // Calculate charges before accepting
       bool success = await FireStoreUtils.assignOrderToDriverFCFS(
         orderId: currentOrder.value.id!,
         driverId: driverModel.value.id!,
@@ -77,6 +256,7 @@ class HomeController extends GetxController {
         currentOrder.value.status = Constant.driverAccepted;
         currentOrder.value.driverID = driverModel.value.id;
         currentOrder.value.driver = driverModel.value;
+        await calculateOrderCharges();
         await FireStoreUtils.setOrder(currentOrder.value);
         AppLogger.log('Order updated in Firestore after accept', tag: 'Firestore');
         ShowToastDialog.closeLoader();
@@ -202,10 +382,10 @@ class HomeController extends GetxController {
       if (driverModel.value.inProgressOrderID != null &&
           driverModel.value.inProgressOrderID!.isNotEmpty) {
         // Safely get the first order ID
-        String? firstOrderId = driverModel.value.inProgressOrderID!.isNotEmpty 
-            ? driverModel.value.inProgressOrderID!.first 
+        String? firstOrderId = driverModel.value.inProgressOrderID!.isNotEmpty
+            ? driverModel.value.inProgressOrderID!.first
             : null;
-            
+
         if (firstOrderId != null && firstOrderId.isNotEmpty) {
           FireStoreUtils.fireStore
               .collection(CollectionName.restaurantOrders)
@@ -240,10 +420,10 @@ class HomeController extends GetxController {
       } else if (driverModel.value.orderRequestData != null &&
           driverModel.value.orderRequestData!.isNotEmpty) {
         // Safely get the first order ID
-        String? firstOrderId = driverModel.value.orderRequestData!.isNotEmpty 
-            ? driverModel.value.orderRequestData!.first 
+        String? firstOrderId = driverModel.value.orderRequestData!.isNotEmpty
+            ? driverModel.value.orderRequestData!.first
             : null;
-            
+
         if (firstOrderId != null && firstOrderId.isNotEmpty) {
           FireStoreUtils.fireStore
               .collection(CollectionName.restaurantOrders)
@@ -257,6 +437,8 @@ class HomeController extends GetxController {
               if (event.docs.isNotEmpty) {
                 currentOrder.value =
                     OrderModel.fromJson(event.docs.first.data());
+                // ADD THIS: Calculate charges when order arrives
+                await calculateOrderChargesInitial();
                 if (driverModel.value.orderRequestData
                     ?.contains(currentOrder.value.id) ==
                     true) {
@@ -542,7 +724,7 @@ class HomeController extends GetxController {
     );
     polyLines[id] = polyline;
     update();
-    
+
     // Safely update camera location only if polyline coordinates exist
     if (polylineCoordinates.isNotEmpty) {
       updateCameraLocation(polylineCoordinates.first, mapController);
@@ -671,15 +853,15 @@ class HomeController extends GetxController {
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
-      
+
       // Safely access routes array
-      if (decoded['routes'] != null && 
-          decoded['routes'] is List && 
+      if (decoded['routes'] != null &&
+          decoded['routes'] is List &&
           decoded['routes'].isNotEmpty &&
           decoded['routes'][0] != null &&
           decoded['routes'][0]['geometry'] != null &&
           decoded['routes'][0]['geometry']['coordinates'] != null) {
-        
+
         final geometry = decoded['routes'][0]['geometry']['coordinates'];
 
         routePoints.clear();
@@ -701,7 +883,7 @@ class HomeController extends GetxController {
   /// Force refresh current order state
   Future<void> refreshCurrentOrder() async {
     AppLogger.log('refreshCurrentOrder() called', tag: 'Function');
-    
+
     if (currentOrder.value.id != null) {
       try {
         // Fetch fresh order data from Firestore
@@ -709,7 +891,7 @@ class HomeController extends GetxController {
             .collection(CollectionName.restaurantOrders)
             .doc(currentOrder.value.id)
             .get();
-            
+
         if (orderDoc.exists) {
           currentOrder.value = OrderModel.fromJson(orderDoc.data()!);
           AppLogger.log('Order refreshed: ${currentOrder.value.id} - ${currentOrder.value.status}', tag: 'Firestore');
@@ -728,31 +910,31 @@ class HomeController extends GetxController {
   /// Refresh home screen data
   Future<void> refreshHomeScreen() async {
     AppLogger.log('refreshHomeScreen() called', tag: 'Function');
-    
+
     try {
       // Refresh driver data
       final driverDoc = await FireStoreUtils.fireStore
           .collection(CollectionName.users)
           .doc(FireStoreUtils.getCurrentUid())
           .get();
-          
+
       if (driverDoc.exists) {
         driverModel.value = UserModel.fromJson(driverDoc.data()!);
         AppLogger.log('Driver data refreshed', tag: 'Firestore');
       }
-      
+
       // Refresh current order if exists
       if (currentOrder.value.id != null) {
         await refreshCurrentOrder();
       }
-      
+
       // Re-setup order listeners
       getCurrentOrder();
-      
+
       // Update UI
       update();
       AppLogger.log('Home screen refresh completed', tag: 'UI');
-      
+
     } catch (e) {
       AppLogger.log('Error refreshing home screen: $e', tag: 'Error');
     }

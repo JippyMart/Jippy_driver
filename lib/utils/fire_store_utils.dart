@@ -618,21 +618,61 @@ class FireStoreUtils {
 
     return taxList;
   }
-
+  // static Future<bool?> setOrder(OrderModel orderModel) async {
+  //   bool isAdded = false;
+  //   await fireStore
+  //       .collection(CollectionName.restaurantOrders)
+  //       .doc(orderModel.id)
+  //       .set(
+  //     orderModel.toJson(),
+  //     SetOptions(merge: true), // ✅ keeps existing fields
+  //   ).then((value) {
+  //     isAdded = true;
+  //   }).catchError((error) {
+  //     log("Failed to update order: $error");
+  //     isAdded = false;
+  //   });
+  //   return isAdded;
+  // }
   static Future<bool?> setOrder(OrderModel orderModel) async {
     bool isAdded = false;
-    await fireStore
-        .collection(CollectionName.restaurantOrders)
-        .doc(orderModel.id)
-        .set(orderModel.toJson())
-        .then((value) {
+
+    try {
+      // Convert to JSON and remove all null fields
+      final Map<String, dynamic> data = orderModel.toJson()
+        ..removeWhere((key, value) => value == null);
+
+      // Write to Firestore, merging with existing fields
+      await fireStore
+          .collection(CollectionName.restaurantOrders)
+          .doc(orderModel.id)
+          .set(
+        data,
+        SetOptions(merge: true),
+      );
+
       isAdded = true;
-    }).catchError((error) {
-      log("Failed to update user: $error");
+    } catch (error) {
+      log("🔥 Failed to update or set order: $error");
       isAdded = false;
-    });
+    }
+
     return isAdded;
   }
+  // static Future<bool?> setOrder(OrderModel orderModel) async {
+  //   bool isAdded = false;
+  //   await fireStore
+  //       .collection(CollectionName.restaurantOrders)
+  //       .doc(orderModel.id)
+  //       .set(orderModel.toJson())
+  //       .then((value) {
+  //     isAdded = true;
+  //   }).catchError((error) {
+  //     log("Failed to update user: $error");
+  //     isAdded = false;
+  //   });
+  //   return isAdded;
+  // }
 
   static Future<EmailTemplateModel?> getEmailTemplates(String type) async {
     EmailTemplateModel? emailTemplateModel;

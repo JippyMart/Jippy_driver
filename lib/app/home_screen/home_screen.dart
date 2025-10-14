@@ -1,3 +1,4 @@
+
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -645,7 +646,84 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
+// Helper method to get calculated charges
+  Future<Map<String, dynamic>?> _getCalculatedCharges(HomeController controller) async {
+    if (controller.currentOrder.value.calculatedCharges != null) {
+      return controller.currentOrder.value.calculatedCharges;
+    }
 
+    // If not in local model, try to fetch from Firestore
+    try {
+      final orderDoc = await FirebaseFirestore.instance
+          .collection('restaurant_orders')
+          .doc(controller.currentOrder.value.id)
+          .get();
+
+      if (orderDoc.exists && orderDoc.data()?['calculatedCharges'] != null) {
+        return Map<String, dynamic>.from(orderDoc.data()!['calculatedCharges']);
+      }
+    } catch (e) {
+      print('Error fetching calculated charges: $e');
+    }
+
+    return null;
+  }
+
+// Helper widget for charge breakdown rows
+  Widget _buildChargeBreakdownRow(String label, String distance, String amount, DarkThemeProvider themeChange) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: themeChange.getThem()
+            ? AppThemeData.grey800
+            : AppThemeData.grey100,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppThemeData.regular,
+                fontSize: 14,
+                color: themeChange.getThem()
+                    ? AppThemeData.grey300
+                    : AppThemeData.grey700,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              distance,
+              style: TextStyle(
+                fontFamily: AppThemeData.medium,
+                fontSize: 14,
+                color: themeChange.getThem()
+                    ? AppThemeData.grey300
+                    : AppThemeData.grey700,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              amount,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontFamily: AppThemeData.semiBold,
+                fontSize: 14,
+                color: AppThemeData.success400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   showDriverBottomSheet(themeChange, HomeController controller) {
     double distanceInMeters = Geolocator.distanceBetween(
         controller.currentOrder.value.vendor!.latitude ?? 0.0,
@@ -794,60 +872,64 @@ class HomeScreen extends StatelessWidget {
               ),
 
               // Surge Fee Section - Made More Prominent
-              FutureBuilder<double?>(
-                future: fetchOrderSergeFee(
-                    controller.currentOrder.value.id.toString()),
+              // FutureBuilder<double?>(
+              //   future: fetchOrderSergeFee(
+              //       controller.currentOrder.value.id.toString()),
+              //   builder: (context, snapshot) {
+              //     final surgeFee = snapshot.data ?? 0.0;
+              //     final hasSurge = surgeFee > 0;
+              FutureBuilder<Map<String, dynamic>?>(
+                future: _getCalculatedCharges(controller),
                 builder: (context, snapshot) {
-                  final surgeFee = snapshot.data ?? 0.0;
-                  final hasSurge = surgeFee > 0;
-
+                  final charges = snapshot.data;
+                  final hasCalculatedCharges = charges != null;
                   return Column(
                     children: [
                       // Surge Fee Badge - Only show when there's surge
-                      if (hasSurge)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 12),
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            // color: AppThemeData.warning50.withOpacity(0.2),
-                            color: Color(0xffff5200),
-                            border: Border.all(
-                              color: AppThemeData.warning300,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.bolt_rounded,
-                                color: AppThemeData.warning500,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                "High Demand Area".tr,
-                                style: TextStyle(
-                                  fontFamily: AppThemeData.semiBold,
-                                  fontSize: 14,
-                                  color: AppThemeData.warning600,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                "+${surgeFee.toStringAsFixed(2)}",
-                                style: TextStyle(
-                                  fontFamily: AppThemeData.bold,
-                                  fontSize: 14,
-                                  color: AppThemeData.warning600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      // if (hasSurge)
+                      //   Container(
+                      //     width: double.infinity,
+                      //     padding: const EdgeInsets.symmetric(
+                      //         vertical: 8, horizontal: 12),
+                      //     margin: const EdgeInsets.only(bottom: 10),
+                      //     decoration: BoxDecoration(
+                      //       // color: AppThemeData.warning50.withOpacity(0.2),
+                      //       color: Color(0xffff5200),
+                      //       border: Border.all(
+                      //         color: AppThemeData.warning300,
+                      //         width: 1,
+                      //       ),
+                      //       borderRadius: BorderRadius.circular(8),
+                      //     ),
+                      //     child: Row(
+                      //       mainAxisAlignment: MainAxisAlignment.center,
+                      //       children: [
+                      //         Icon(
+                      //           Icons.bolt_rounded,
+                      //           color: AppThemeData.warning500,
+                      //           size: 18,
+                      //         ),
+                      //         const SizedBox(width: 6),
+                      //         Text(
+                      //           "High Demand Area".tr,
+                      //           style: TextStyle(
+                      //             fontFamily: AppThemeData.semiBold,
+                      //             fontSize: 14,
+                      //             color: AppThemeData.warning600,
+                      //           ),
+                      //         ),
+                      //         const SizedBox(width: 6),
+                      //         Text(
+                      //           "+${surgeFee.toStringAsFixed(2)}",
+                      //           style: TextStyle(
+                      //             fontFamily: AppThemeData.bold,
+                      //             fontSize: 14,
+                      //             color: AppThemeData.warning600,
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
 
                       // Trip Distance
                       Row(
@@ -879,7 +961,58 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+
+                      // NEW: Restaurant to Customer Charge
+
+                      // const SizedBox(height: 8),
+                      // if (hasCalculatedCharges) ...[
+                      //   _buildChargeBreakdownRow(
+                      //     "To Restaurant:",
+                      //     "${charges['driverToRestaurantDistance']?.toStringAsFixed(2) ?? '0.00'} km",
+                      //     "+₹${charges['driverToRestaurantCharge']?.toStringAsFixed(2) ?? '0.00'}",
+                      //     themeChange,
+                      //   ),
+                      //   _buildChargeBreakdownRow(
+                      //     "To Customer:",
+                      //     "${charges['restaurantToCustomerDistance']?.toStringAsFixed(2) ?? '0.00'} km",
+                      //     "+₹${charges['restaurantToCustomerCharge']?.toStringAsFixed(2) ?? '0.00'}",
+                      //     themeChange,
+                      //   ),
+                      //   const SizedBox(height: 8),
+                      //   Container(
+                      //     padding: const EdgeInsets.all(8),
+                      //     decoration: BoxDecoration(
+                      //       color: AppThemeData.success50.withOpacity(0.2),
+                      //       borderRadius: BorderRadius.circular(8),
+                      //       border: Border.all(color: AppThemeData.success200),
+                      //     ),
+                      //     child: Row(
+                      //       children: [
+                      //         Expanded(
+                      //           child: Text(
+                      //             "Total Calculated:".tr,
+                      //             style: TextStyle(
+                      //               fontFamily: AppThemeData.semiBold,
+                      //               color: themeChange.getThem()
+                      //                   ? AppThemeData.grey50
+                      //                   : AppThemeData.grey900,
+                      //               fontSize: 16,
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         Text(
+                      //           "₹${charges['totalCalculatedCharge']?.toStringAsFixed(2) ?? '0.00'}",
+                      //           style: TextStyle(
+                      //             fontFamily: AppThemeData.bold,
+                      //             color: AppThemeData.success500,
+                      //             fontSize: 18,
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      //   const SizedBox(height: 8),
+                      // ],
 
                       // Delivery Charge
                       Visibility(
@@ -904,7 +1037,7 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                "23.00",
+                                "${controller.driverToRestaurantCharge.value} + ${controller.restaurantToCustomerCharge.value} = ${controller.totalCalculatedCharge.value}",
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontFamily: AppThemeData.semiBold,
@@ -921,105 +1054,107 @@ class HomeScreen extends StatelessWidget {
                       ),
 
                       // Surge Fee - Always show but with different styling
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 6, horizontal: 8),
-                        decoration: BoxDecoration(
-                          color: hasSurge
-                              ? AppThemeData.success50.withOpacity(0.3)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    "Surge Fee".tr,
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                      fontFamily: AppThemeData.regular,
-                                      color: themeChange.getThem()
-                                          ? AppThemeData.grey300
-                                          : AppThemeData.grey600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  if (hasSurge) const SizedBox(width: 6),
-                                  if (hasSurge)
-                                    Icon(
-                                      Icons.trending_up_rounded,
-                                      color: AppThemeData.success400,
-                                      size: 16,
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              "+${surgeFee.toStringAsFixed(2)}",
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontFamily: AppThemeData.semiBold,
-                                color: hasSurge
-                                    ? AppThemeData.success500
-                                    : (themeChange.getThem()
-                                        ? AppThemeData.grey50
-                                        : AppThemeData.grey900),
-                                fontSize: hasSurge ? 17 : 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Total Earnings Estimate - New Section
-                      if (hasSurge)
-                        Column(
-                          children: [
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: AppThemeData.primary50.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppThemeData.primary200,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      "Total Earnings".tr,
-                                      textAlign: TextAlign.start,
-                                      style: TextStyle(
-                                        fontFamily: AppThemeData.semiBold,
-                                        color: themeChange.getThem()
-                                            ? AppThemeData.grey50
-                                            : AppThemeData.grey900,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    // Calculate total: delivery charge + surge fee
-                                    "${(23.00 + surgeFee).toStringAsFixed(2)}",
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                      fontFamily: AppThemeData.bold,
-                                      color: AppThemeData.primary500,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(
+                      //       vertical: 6, horizontal: 8),
+                      //   decoration: BoxDecoration(
+                      //     color:
+                      //     hasSurge
+                      //         ? AppThemeData.success50.withOpacity(0.3)
+                      //         :
+                      //     Colors.transparent,
+                      //     borderRadius: BorderRadius.circular(6),
+                      //   ),
+                      //   child: Row(
+                      //     crossAxisAlignment: CrossAxisAlignment.start,
+                      //     children: [
+                      //       Expanded(
+                      //         child: Row(
+                      //           children: [
+                      //             Text(
+                      //               "Surge Fee".tr,
+                      //               textAlign: TextAlign.start,
+                      //               style: TextStyle(
+                      //                 fontFamily: AppThemeData.regular,
+                      //                 color: themeChange.getThem()
+                      //                     ? AppThemeData.grey300
+                      //                     : AppThemeData.grey600,
+                      //                 fontSize: 16,
+                      //               ),
+                      //             ),
+                      //             if (hasSurge) const SizedBox(width: 6),
+                      //             if (hasSurge)
+                      //               Icon(
+                      //                 Icons.trending_up_rounded,
+                      //                 color: AppThemeData.success400,
+                      //                 size: 16,
+                      //               ),
+                      //           ],
+                      //         ),
+                      //       ),
+                      //       Text(
+                      //         "+${surgeFee.toStringAsFixed(2)}",
+                      //         textAlign: TextAlign.start,
+                      //         style: TextStyle(
+                      //           fontFamily: AppThemeData.semiBold,
+                      //           color: hasSurge
+                      //               ? AppThemeData.success500
+                      //               : (themeChange.getThem()
+                      //                   ? AppThemeData.grey50
+                      //                   : AppThemeData.grey900),
+                      //           fontSize: hasSurge ? 17 : 16,
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
+                      //
+                      // // Total Earnings Estimate - New Section
+                      // if (hasSurge)
+                      //   Column(
+                      //     children: [
+                      //       const SizedBox(height: 8),
+                      //       Container(
+                      //         padding: const EdgeInsets.symmetric(
+                      //             vertical: 8, horizontal: 12),
+                      //         decoration: BoxDecoration(
+                      //           color: AppThemeData.primary50.withOpacity(0.2),
+                      //           borderRadius: BorderRadius.circular(8),
+                      //           border: Border.all(
+                      //             color: AppThemeData.primary200,
+                      //             width: 1,
+                      //           ),
+                      //         ),
+                      //         child: Row(
+                      //           children: [
+                      //             Expanded(
+                      //               child: Text(
+                      //                 "Total Earnings".tr,
+                      //                 textAlign: TextAlign.start,
+                      //                 style: TextStyle(
+                      //                   fontFamily: AppThemeData.semiBold,
+                      //                   color: themeChange.getThem()
+                      //                       ? AppThemeData.grey50
+                      //                       : AppThemeData.grey900,
+                      //                   fontSize: 16,
+                      //                 ),
+                      //               ),
+                      //             ),
+                      //             Text(
+                      //               // Calculate total: delivery charge + surge fee
+                      //               "${(23.00 + surgeFee).toStringAsFixed(2)}",
+                      //               textAlign: TextAlign.start,
+                      //               style: TextStyle(
+                      //                 fontFamily: AppThemeData.bold,
+                      //                 color: AppThemeData.primary500,
+                      //                 fontSize: 18,
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
                     ],
                   );
                 },
@@ -2083,7 +2218,7 @@ class HomeScreen extends StatelessWidget {
                           //           ? AppThemeData.grey50
                           //           : AppThemeData.grey900,
                           //       fontSize: 16,
-                          //     ),
+                          //     ), = 
 
                           FutureBuilder<double?>(
                             future: fetchToPayForOrder(
@@ -2354,3 +2489,6 @@ class _ShiningHighDemandWidgetState extends State<ShiningHighDemandWidget>
     );
   }
 }
+
+
+// NEW: Helper widget for charge breakdown rows

@@ -33,7 +33,7 @@ class OrderModel {
   bool? takeAway;
   List<dynamic>? rejectedByDrivers;
   String? toPay; // New field for 'ToPay' from Firestore
-
+  Map<String, dynamic>? calculatedCharges;
   OrderModel(
       {this.address,
         this.status,
@@ -62,7 +62,9 @@ class OrderModel {
         this.driver,
         this.takeAway,
         this.rejectedByDrivers,
-        this.toPay}); // Add to constructor
+        this.toPay,
+        this.calculatedCharges,
+      }); // Add to constructor
 
   OrderModel.fromJson(Map<String, dynamic> json) {
     address = json['address'] != null ? ShippingAddress.fromJson(json['address']) : null;
@@ -103,6 +105,9 @@ class OrderModel {
     takeAway = json['takeAway'];
     rejectedByDrivers = json['rejectedByDrivers'] ?? [];
     toPay = json['ToPay']?.toString(); // Parse 'ToPay' from Firestore
+    calculatedCharges: json['calculatedCharges'] != null
+        ? Map<String, dynamic>.from(json['calculatedCharges'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -147,6 +152,7 @@ class OrderModel {
     data['takeAway'] = takeAway;
     data['rejectedByDrivers'] = rejectedByDrivers;
     data['ToPay'] = toPay; // Add 'ToPay' to Firestore
+    data['calculatedCharges'] = calculatedCharges; // Add 'ToPay' to Firestore
     return data;
   }
 }
