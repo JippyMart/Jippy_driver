@@ -1,6 +1,6 @@
 
 import 'dart:developer';
-
+import 'package:android_pip/android_pip.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/app/chat_screens/chat_screen.dart';
 import 'package:driver/app/home_screen/deliver_order_screen.dart';
@@ -31,23 +31,57 @@ import 'package:provider/provider.dart';
 import 'package:timelines_plus/timelines_plus.dart';
 
 import '../order_list_screen/order_details_screen.dart';
+import 'package:android_pip/android_pip.dart';
+
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final bool? isAppBarShow;
 
   const HomeScreen({super.key, this.isAppBarShow});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  // Future<void>  floatingButton()async{
+  //    AndroidPIP().enterPipMode(aspectRatio: [7, 9],);
+  // }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // 1. Register the observer to listen for lifecycle changes
+  //   WidgetsBinding.instance.addObserver(this);
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   // Unregister the observer
+  //   WidgetsBinding.instance.removeObserver(this);
+  //   super.dispose();
+  // }
+  //
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   super.didChangeAppLifecycleState(state);
+  //   if (state == AppLifecycleState.inactive ) {
+  //      floatingButton();
+  //   }
+  // }
+
+
+  @override
   Widget build(BuildContext context) {
-    AppLogger.log('HomeScreen build() called', tag: 'Screen');
+
     final themeChange = Provider.of<DarkThemeProvider>(context);
+    AppLogger.log('HomeScreen build() called', tag: 'Screen');
     return GetX(
       init: HomeController(),
       builder: (controller) {
         return Scaffold(
-          appBar: isAppBarShow == true
+          appBar: widget.isAppBarShow == true
               ? AppBar(
                   backgroundColor: themeChange.getThem()
                       ? AppThemeData.grey900
@@ -646,6 +680,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
+
 // Helper method to get calculated charges
   Future<Map<String, dynamic>?> _getCalculatedCharges(HomeController controller) async {
     if (controller.currentOrder.value.calculatedCharges != null) {
@@ -724,6 +759,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
   showDriverBottomSheet(themeChange, HomeController controller) {
     double distanceInMeters = Geolocator.distanceBetween(
         controller.currentOrder.value.vendor!.latitude ?? 0.0,
@@ -1263,399 +1299,8 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-  // showDriverBottomSheet(themeChange, HomeController controller) {
-  //   double distanceInMeters = Geolocator.distanceBetween(
-  //       controller.currentOrder.value.vendor!.latitude ?? 0.0,
-  //       controller.currentOrder.value.vendor!.longitude ?? 0.0,
-  //       controller.currentOrder.value.address!.location!.latitude ?? 0.0,
-  //       controller.currentOrder.value.address!.location!.longitude ?? 0.0);
-  //   double kilometer = distanceInMeters / 1000;
-  //   return Padding(
-  //     padding: const EdgeInsets.all(8.0),
-  //     child: Container(
-  //       decoration: ShapeDecoration(
-  //         color: themeChange.getThem()
-  //             ? AppThemeData.grey900
-  //             : AppThemeData.grey50,
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(16),
-  //         ),
-  //       ),
-  //       child: Padding(
-  //         padding: const EdgeInsets.all(8.0),
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             Timeline.tileBuilder(
-  //               shrinkWrap: true,
-  //               padding: EdgeInsets.zero,
-  //               physics: const NeverScrollableScrollPhysics(),
-  //               theme: TimelineThemeData(
-  //                 nodePosition: 0,
-  //                 // indicatorPosition: 0,
-  //               ),
-  //               builder: TimelineTileBuilder.connected(
-  //                 contentsAlign: ContentsAlign.basic,
-  //                 indicatorBuilder: (context, index) {
-  //                   return index == 0
-  //                       ? Container(
-  //                           decoration: ShapeDecoration(
-  //                             color: AppThemeData.primary50,
-  //                             shape: RoundedRectangleBorder(
-  //                               borderRadius: BorderRadius.circular(120),
-  //                             ),
-  //                           ),
-  //                           child: Padding(
-  //                             padding: const EdgeInsets.all(10),
-  //                             child: SvgPicture.asset(
-  //                               "assets/icons/ic_building.svg",
-  //                               colorFilter: const ColorFilter.mode(
-  //                                   AppThemeData.primary300, BlendMode.srcIn),
-  //                             ),
-  //                           ),
-  //                         )
-  //                       : Container(
-  //                           decoration: ShapeDecoration(
-  //                             color: AppThemeData.driverApp50,
-  //                             shape: RoundedRectangleBorder(
-  //                               borderRadius: BorderRadius.circular(120),
-  //                             ),
-  //                           ),
-  //                           child: Padding(
-  //                             padding: const EdgeInsets.all(10),
-  //                             child: SvgPicture.asset(
-  //                               "assets/icons/ic_location.svg",
-  //                               colorFilter: ColorFilter.mode(
-  //                                   AppThemeData.driverApp300, BlendMode.srcIn),
-  //                             ),
-  //                           ),
-  //                         );
-  //                 },
-  //                 connectorBuilder: (context, index, connectorType) {
-  //                   return const DashedLineConnector(
-  //                     color: AppThemeData.grey300,
-  //                     gap: 3,
-  //                   );
-  //                 },
-  //                 contentsBuilder: (context, index) {
-  //                   return Padding(
-  //                     padding: const EdgeInsets.symmetric(
-  //                         horizontal: 10, vertical: 10),
-  //                     child: index == 0
-  //                         ? Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Text(
-  //                                 "${controller.currentOrder.value.vendor!.title}",
-  //                                 textAlign: TextAlign.start,
-  //                                 style: TextStyle(
-  //                                   fontFamily: AppThemeData.semiBold,
-  //                                   fontSize: 16,
-  //                                   color: themeChange.getThem()
-  //                                       ? AppThemeData.grey50
-  //                                       : AppThemeData.grey900,
-  //                                 ),
-  //                               ),
-  //                               Text(
-  //                                 "${controller.currentOrder.value.vendor!.location}",
-  //                                 textAlign: TextAlign.start,
-  //                                 style: TextStyle(
-  //                                   fontFamily: AppThemeData.medium,
-  //                                   fontSize: 14,
-  //                                   color: themeChange.getThem()
-  //                                       ? AppThemeData.grey300
-  //                                       : AppThemeData.grey600,
-  //                                 ),
-  //                               ),
-  //                             ],
-  //                           )
-  //                         : Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Text(
-  //                                 "Deliver to the".tr,
-  //                                 textAlign: TextAlign.start,
-  //                                 style: TextStyle(
-  //                                   fontFamily: AppThemeData.semiBold,
-  //                                   fontSize: 16,
-  //                                   color: themeChange.getThem()
-  //                                       ? AppThemeData.grey50
-  //                                       : AppThemeData.grey900,
-  //                                 ),
-  //                               ),
-  //                               Text(
-  //                                 controller.currentOrder.value.address!
-  //                                     .getFullAddress(),
-  //                                 textAlign: TextAlign.start,
-  //                                 style: TextStyle(
-  //                                   fontFamily: AppThemeData.medium,
-  //                                   fontSize: 14,
-  //                                   color: themeChange.getThem()
-  //                                       ? AppThemeData.grey300
-  //                                       : AppThemeData.grey600,
-  //                                 ),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                   );
-  //                 },
-  //                 itemCount: 2,
-  //               ),
-  //             ),
-  //             Padding(
-  //               padding: const EdgeInsets.symmetric(vertical: 5),
-  //               child: MySeparator(
-  //                   color: themeChange.getThem()
-  //                       ? AppThemeData.grey700
-  //                       : AppThemeData.grey200),
-  //             ),
-  //             Row(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 //changed here
-  //                 Expanded(
-  //                   child: Text(
-  //                     "Trip Distance".tr,
-  //                     textAlign: TextAlign.start,
-  //                     style: TextStyle(
-  //                       fontFamily: AppThemeData.regular,
-  //                       color: themeChange.getThem()
-  //                           ? AppThemeData.grey300
-  //                           : AppThemeData.grey600,
-  //                       fontSize: 16,
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 Text(
-  //                   "${double.parse(kilometer.toString()).toStringAsFixed(2)} ${Constant.distanceType}",
-  //                   textAlign: TextAlign.start,
-  //                   style: TextStyle(
-  //                     fontFamily: AppThemeData.semiBold,
-  //                     color: themeChange.getThem()
-  //                         ? AppThemeData.grey50
-  //                         : AppThemeData.grey900,
-  //                     fontSize: 16,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //             Visibility(
-  //               visible:
-  //                   (controller.driverModel.value.vendorID?.isEmpty == true),
-  //               child: Column(children: [
-  //                 const SizedBox(
-  //                   height: 5,
-  //                 ),
-  //                 Row(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     Expanded(
-  //                       child: Text(
-  //                         "Delivery Charge".tr,
-  //                         textAlign: TextAlign.start,
-  //                         style: TextStyle(
-  //                           fontFamily: AppThemeData.regular,
-  //                           color: themeChange.getThem()
-  //                               ? AppThemeData.grey300
-  //                               : AppThemeData.grey600,
-  //                           fontSize: 16,
-  //                         ),
-  //                       ),
-  //                     ),
-  //                     Text(
-  //                       "23.00",
-  //                       // Constant.amountShow(
-  //                       //     amount:
-  //                       //         controller.currentOrder.value.deliveryCharge ?? "0.0"),
-  //                       textAlign: TextAlign.start,
-  //                       style: TextStyle(
-  //                         fontFamily: AppThemeData.semiBold,
-  //                         color: themeChange.getThem()
-  //                             ? AppThemeData.grey50
-  //                             : AppThemeData.grey900,
-  //                         fontSize: 16,
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ]),
-  //             ),
-  //             const SizedBox(
-  //               height: 5,
-  //             ),
-  //             Row(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 //changed here
-  //                 Expanded(
-  //                   child: Text(
-  //                     "Surge Fee".tr,
-  //                     textAlign: TextAlign.start,
-  //                     style: TextStyle(
-  //                       fontFamily: AppThemeData.regular,
-  //                       color: themeChange.getThem()
-  //                           ? AppThemeData.grey300
-  //                           : AppThemeData.grey600,
-  //                       fontSize: 16,
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 // controller.currentOrder.value.id.toString()
-  //                 FutureBuilder<double?>(
-  //                   future: fetchOrderSergeFee(
-  //                       controller.currentOrder.value.id.toString()),
-  //                   builder: (context, snapshot) {
-  //                     if (snapshot.connectionState == ConnectionState.waiting) {
-  //                       return Text(
-  //                         "Loading...",
-  //                         style: TextStyle(
-  //                           fontFamily: AppThemeData.semiBold,
-  //                           color: themeChange.getThem()
-  //                               ? AppThemeData.grey50
-  //                               : AppThemeData.grey900,
-  //                           fontSize: 16,
-  //                         ),
-  //                       );
-  //                     } else if (snapshot.hasError) {
-  //                       return Text(
-  //                         "Error",
-  //                         style: TextStyle(
-  //                           fontFamily: AppThemeData.semiBold,
-  //                           color: AppThemeData.danger300,
-  //                           fontSize: 16,
-  //                         ),
-  //                       );
-  //                     } else {
-  //                       final surgeFee = snapshot.data ?? 0.0;
-  //                       return Text(
-  //                         surgeFee.toStringAsFixed(2), // show 2 decimals
-  //                         style: TextStyle(
-  //                           fontFamily: AppThemeData.semiBold,
-  //                           color: themeChange.getThem()
-  //                               ? AppThemeData.grey50
-  //                               : AppThemeData.grey900,
-  //                           fontSize: 16,
-  //                         ),
-  //                       );
-  //                     }
-  //                   },
-  //                 ),
-  //                 // Text(
-  //                 //           await fetchOrderSergeFee(
-  //                 //                   controller.currentOrder.value.id.toString())
-  //                 //               .toString(),
-  //                 //           textAlign: TextAlign.start,
-  //                 //           style: TextStyle(
-  //                 //             fontFamily: AppThemeData.semiBold,
-  //                 //             color: themeChange.getThem()
-  //                 //                 ? AppThemeData.grey50
-  //                 //                 : AppThemeData.grey900,
-  //                 //             fontSize: 16,
-  //                 //           ),
-  //                 //         ),
-  //               ],
-  //             ),
-  //             const SizedBox(
-  //               height: 5,
-  //             ),
-  //             controller.currentOrder.value.tipAmount == null ||
-  //                     controller.currentOrder.value.tipAmount?.isEmpty ==
-  //                         true ||
-  //                     double.parse(controller.currentOrder.value.tipAmount
-  //                                 ?.toString() ??
-  //                             "0.0") <=
-  //                         0
-  //                 ? const SizedBox()
-  //                 : Row(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       Expanded(
-  //                         child: Text(
-  //                           "Tips".tr,
-  //                           textAlign: TextAlign.start,
-  //                           style: TextStyle(
-  //                             fontFamily: AppThemeData.regular,
-  //                             color: themeChange.getThem()
-  //                                 ? AppThemeData.grey300
-  //                                 : AppThemeData.grey600,
-  //                             fontSize: 16,
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       Text(
-  //                         Constant.amountShow(
-  //                             amount: controller.currentOrder.value.tipAmount),
-  //                         textAlign: TextAlign.start,
-  //                         style: TextStyle(
-  //                           fontFamily: AppThemeData.semiBold,
-  //                           color: themeChange.getThem()
-  //                               ? AppThemeData.grey50
-  //                               : AppThemeData.grey900,
-  //                           fontSize: 16,
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //             const SizedBox(
-  //               height: 10,
-  //             ),
-  //             Row(
-  //               children: [
-  //                 Expanded(
-  //                   child: RoundedButtonFill(
-  //                     title: "Reject".tr,
-  //                     width: 24,
-  //                     height: 5.5,
-  //                     borderRadius: 10,
-  //                     color: AppThemeData.danger300,
-  //                     textColor: AppThemeData.grey50,
-  //                     onPress: () {
-  //                       AppLogger.log('User clicked Reject Order button',
-  //                           tag: 'UserAction');
-  //                       controller.rejectOrder();
-  //                     },
-  //                   ),
-  //                 ),
-  //                 const SizedBox(
-  //                   width: 10,
-  //                 ),
-  //                 Expanded(
-  //                   child: RoundedButtonFill(
-  //                     title: "Accept".tr,
-  //                     width: 24,
-  //                     height: 5.5,
-  //                     borderRadius: 10,
-  //                     color: AppThemeData.success400,
-  //                     textColor: AppThemeData.grey50,
-  //                     onPress: () async {
-  //                       AppLogger.log('User clicked Accept Order button',
-  //                           tag: 'UserAction');
-  //                       await controller.acceptOrder();
-  //                       // Manual refresh: fetch latest order and update controller
-  //                       if (controller.currentOrder.value.id != null) {
-  //                         final updatedOrder =
-  //                             await FireStoreUtils.getOrderById(
-  //                                 controller.currentOrder.value.id!);
-  //                         if (updatedOrder != null) {
-  //                           controller.currentOrder.value = updatedOrder;
-  //                           controller.update();
-  //                         }
-  //                       }
-  //                     },
-  //                   ),
-  //                 )
-  //               ],
-  //             ),
-  //             const SizedBox(
-  //               height: 10,
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
+  // showDriverBottomSheet(themeChange, HomeController controller) {
   buildOrderActionsCard(themeChange, HomeController controller) {
     double totalAmount = 0.0;
     double subTotal = 0.0;
@@ -2218,7 +1863,7 @@ class HomeScreen extends StatelessWidget {
                           //           ? AppThemeData.grey50
                           //           : AppThemeData.grey900,
                           //       fontSize: 16,
-                          //     ), = 
+                          //     ), =
 
                           FutureBuilder<double?>(
                             future: fetchToPayForOrder(

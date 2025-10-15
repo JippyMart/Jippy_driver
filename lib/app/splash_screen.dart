@@ -25,11 +25,17 @@ class SplashScreen extends StatelessWidget {
                 const SizedBox(height: 10,),
                 Text(
                   "Welcome to JippyMart Driver".tr,
-                  style: TextStyle(color: themeChange.getThem() ? AppThemeData.grey50 : AppThemeData.grey50, fontSize: 28, fontFamily: AppThemeData.bold),
+                  style: TextStyle(color: themeChange.getThem() ? AppThemeData.grey50 : AppThemeData.grey50, fontSize: 28, fontFamily: AppThemeData.bold),textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 20,),
                 Text(
                   "Your Favorite Food Delivered Fast!".tr,
                   style: TextStyle(color: themeChange.getThem() ? AppThemeData.grey50 : AppThemeData.grey50),
+                ),
+                const SizedBox(height: 10,),
+                Text(
+                  "Earn Upto 40k to 50k per month".tr,
+                  style: TextStyle(color: themeChange.getThem() ? AppThemeData.grey50 : AppThemeData.grey50, fontSize: 20, fontFamily: AppThemeData.bold),
                 ),
               ],
             ),

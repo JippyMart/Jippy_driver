@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:android_pip/android_pip.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:driver/app/splash_screen.dart';
 import 'package:driver/constant/constant.dart';
@@ -76,9 +77,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         state == AppLifecycleState.paused) {
       AudioPlayerService.initAudio();
     }
+    if (state == AppLifecycleState.inactive||state == AppLifecycleState.paused  ) {
+         floatingButton();
+      }
     getCurrentAppTheme();
   }
-
+  Future<void>  floatingButton()async{
+    AndroidPIP().enterPipMode(aspectRatio: [7, 9],);
+  }
   void getCurrentAppTheme() async {
     themeChangeProvider.darkTheme =
         await themeChangeProvider.darkThemePreference.getTheme();

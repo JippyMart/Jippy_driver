@@ -11,6 +11,9 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+# Ignore Android build folder
+/android/app/build/
+/android/app/.cxx/
 
 # IntelliJ related
 *.iml
