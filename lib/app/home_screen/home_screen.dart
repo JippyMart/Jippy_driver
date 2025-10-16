@@ -9,6 +9,7 @@ import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
 import 'package:driver/controllers/dash_board_controller.dart';
 import 'package:driver/app/home_screen/controller/home_controller.dart';
+import 'package:driver/main.dart';
 import 'package:driver/models/order_model.dart';
 import 'package:driver/models/user_model.dart';
 import 'package:driver/services/audio_player_service.dart';
@@ -411,43 +412,49 @@ class HomeScreen extends StatelessWidget {
                         //               ),
                         //             );
                         //           })(),
-
-                        (controller.currentOrder.value.id != null &&
-                                controller.currentOrder.value.status ==
-                                    Constant.driverPending &&
-                                (controller.currentOrder.value.driverID ==
-                                        null ||
-                                    controller.currentOrder.value.driverID
-                                            ?.isEmpty ==
-                                        true))
-                            ? showDriverBottomSheet(themeChange, controller)
-                            : (controller.currentOrder.value.id != null &&
-                                    controller.currentOrder.value.status !=
-                                        Constant.driverPending &&
-                                    controller.currentOrder.value.driverID ==
-                                        Constant.userModel?.id)
-                                ? (() {
-                                    AppLogger.log(
-                                        'Showing buildOrderActionsCard: currentDriverId=${Constant.userModel?.id}, orderDriverId=${controller.currentOrder.value.driverID}',
-                                        tag: 'UI');
-                                    return buildOrderActionsCard(
-                                        themeChange, controller);
-                                  })()
-                                : (() {
-                                    /// Clear the map ONLY if the current driver is NOT assigned
-                                    if (controller
-                                            .currentOrder.value.driverID !=
-                                        Constant.userModel?.id) {
-                                      controller.clearMap();
-                                    }
-                                    return Center(
-                                      // child: Text(
-                                      //   'No active orders. Waiting for new orders...',
-                                      //   style: TextStyle(
-                                      //       fontSize: 18, color: Colors.grey),
-                                      // ),
-                                    );
-                                  })(),
+Obx(
+  () {
+    bool hideUI = isInPipMode.value;
+    return    hideUI?SizedBox():  (controller.currentOrder.value.id != null &&
+        controller.currentOrder.value.status ==
+            Constant.driverPending &&
+        (controller.currentOrder.value.driverID ==
+            null ||
+            controller.currentOrder.value.driverID
+                ?.isEmpty ==
+                true))
+        ? showDriverBottomSheet(themeChange, controller)
+        : (controller.currentOrder.value.id != null &&
+        controller.currentOrder.value.status !=
+            Constant.driverPending &&
+        controller.currentOrder.value.driverID ==
+            Constant.userModel?.id)
+        ? (() {
+      AppLogger.log(
+          'Showing buildOrderActionsCard: currentDriverId=${Constant.userModel?.id}, orderDriverId=${controller.currentOrder.value.driverID}',
+          tag: 'UI');
+      return buildOrderActionsCard(
+          themeChange, controller);
+    })()
+        : (() {
+      /// Clear the map ONLY if the current driver is NOT assigned
+      if (controller
+          .currentOrder.value.driverID !=
+          Constant.userModel?.id) {
+        controller.clearMap();
+      }
+      return SafeArea(
+        child: Center(
+          // child: Text(
+          //   'No active orders. Waiting for new orders...',
+          //   style: TextStyle(
+          //       fontSize: 18, color: Colors.grey),
+          // ),
+        ),
+      );
+    })();
+  }
+),
 
                         // Obx(() {
                         //   if (controller.currentOrder.value.id == null) {
