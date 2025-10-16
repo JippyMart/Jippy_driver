@@ -18,7 +18,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as location;
-import '../models/order_model.dart';
+import '../../../models/order_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:driver/utils/app_logger.dart';
 // import '../services/order_service.dart';

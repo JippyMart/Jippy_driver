@@ -3,7 +3,7 @@ import 'package:driver/app/change%20langauge/change_language_screen.dart';
 import 'package:driver/app/chat_screens/driver_inbox_screen.dart';
 import 'package:driver/app/edit_profile_screen/edit_profile_screen.dart';
 import 'package:driver/app/home_screen/home_screen.dart';
-import 'package:driver/app/home_screen/home_screen_multiple_order.dart';
+import 'package:driver/app/home_screen/screens/home_screen_multiple_order/home_screen_multiple_order.dart';
 import 'package:driver/app/order_list_screen/order_list_screen.dart';
 import 'package:driver/app/terms_and_condition/terms_and_condition_screen.dart';
 import 'package:driver/app/verification_screen/verification_screen.dart';
@@ -12,6 +12,7 @@ import 'package:driver/app/withdraw_method_setup_screens/withdraw_method_setup_s
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
 import 'package:driver/controllers/dash_board_controller.dart';
+import 'package:driver/models/user_model.dart';
 import 'package:driver/services/audio_player_service.dart';
 import 'package:driver/themes/app_them_data.dart';
 import 'package:driver/themes/custom_dialog_box.dart';
@@ -28,121 +29,139 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class DashBoardScreen extends StatelessWidget {
-  const DashBoardScreen({super.key});
+import '../../main.dart';
 
+// class DashBoardScreen extends StatelessWidget {
+//   const DashBoardScreen({super.key});
+class DashBoardScreen extends StatefulWidget {
+  final UserModel? userModel;
+
+  const DashBoardScreen({super.key,  this.userModel});
+
+  @override
+  State<DashBoardScreen> createState() => _DashBoardScreenState();
+}
+class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   Widget build(BuildContext context) {
     final themeChange = Provider.of<DarkThemeProvider>(context);
-    return GetX(
-      init: DashBoardController(),
-      builder: (controller) {
-        return Scaffold(
-          drawerEnableOpenDragGesture: false,
-          appBar: AppBar(
-            backgroundColor: themeChange.getThem()
-                ? AppThemeData.grey900
-                : AppThemeData.grey50,
-            titleSpacing: 5,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome Back 👋'.tr,
-                  style: TextStyle(
-                    color: themeChange.getThem()
-                        ? AppThemeData.grey50
-                        : AppThemeData.grey900,
-                    fontSize: 12,
-                    fontFamily: AppThemeData.medium,
-                  ),
-                ),
-                Text(
-                  '${Constant.userModel!.fullName()}'.tr,
-                  style: TextStyle(
-                    color: themeChange.getThem()
-                        ? AppThemeData.grey50
-                        : AppThemeData.grey900,
-                    fontSize: 14,
-                    fontFamily: AppThemeData.semiBold,
-                  ),
-                )
-              ],
-            ),
-            actions: [
-              Visibility(
-                visible: Constant.userModel?.vendorID?.isEmpty == true,
-                child: InkWell(
-                    onTap: () {
-                      Get.to(const WalletScreen(isAppBarShow: true));
-                    },
-                    child: SvgPicture.asset("assets/icons/ic_wallet_home.svg")),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              InkWell(
-                  onTap: () {
-                    Get.to(const EditProfileScreen());
-                  },
-                  child: SvgPicture.asset("assets/icons/ic_user_business.svg")),
-              const SizedBox(
-                width: 10,
-              ),
-            ],
-            leading: Builder(builder: (context) {
-              return InkWell(
-                onTap: () {
-                  Scaffold.of(context).openDrawer();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Container(
-                      decoration: ShapeDecoration(
+    return  Obx(() {
+      bool hideUI = isInPipMode.value;
+        return GetX(
+          init: DashBoardController(),
+          builder: (controller) {
+            return Scaffold(
+              drawerEnableOpenDragGesture: false,
+              appBar: hideUI
+                  ? null
+                  :  AppBar(
+                backgroundColor: themeChange.getThem()
+                    ? AppThemeData.grey900
+                    : AppThemeData.grey50,
+                titleSpacing: 5,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome Back 👋'.tr,
+                      style: TextStyle(
                         color: themeChange.getThem()
-                            ? AppThemeData.driverApp600
-                            : AppThemeData.driverApp50,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(120),
-                        ),
+                            ? AppThemeData.grey50
+                            : AppThemeData.grey900,
+                        fontSize: 12,
+                        fontFamily: AppThemeData.medium,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child:
-                            SvgPicture.asset("assets/icons/ic_drawer_open.svg"),
-                      )),
-                ),
-              );
-            }),
-          ),
-          drawer: const DrawerView(),
-          body: controller.drawerIndex.value == 0
-              ? Constant.singleOrderReceive == true
-                  ? const HomeScreen(
-                      isAppBarShow: false,
+                    ),
+                    Text(
+                      '${Constant.userModel!.fullName()}'.tr,
+                      style: TextStyle(
+                        color: themeChange.getThem()
+                            ? AppThemeData.grey50
+                            : AppThemeData.grey900,
+                        fontSize: 14,
+                        fontFamily: AppThemeData.semiBold,
+                      ),
                     )
-                  : const HomeScreenMultipleOrder()
-              : controller.drawerIndex.value == 1
-                  ? const OrderListScreen()
-                  : controller.drawerIndex.value == 2
-                      ? const WalletScreen(
+                  ],
+                ),
+                actions: [
+                  Visibility(
+                    visible: Constant.userModel?.vendorID?.isEmpty == true,
+                    child: InkWell(
+                        onTap: () {
+                          Get.to(const WalletScreen(isAppBarShow: true));
+                        },
+                        child: SvgPicture.asset("assets/icons/ic_wallet_home.svg")),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  InkWell(
+                      onTap: () {
+                        Get.to(const EditProfileScreen());
+                      },
+                      child: SvgPicture.asset("assets/icons/ic_user_business.svg")),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                ],
+                leading: Builder(builder: (context) {
+                  return InkWell(
+                    onTap: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Container(
+                          decoration: ShapeDecoration(
+                            color: themeChange.getThem()
+                                ? AppThemeData.driverApp600
+                                : AppThemeData.driverApp50,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(120),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child:
+                                SvgPicture.asset("assets/icons/ic_drawer_open.svg"),
+                          )),
+                    ),
+                  );
+                }),
+              ),
+              drawer:hideUI
+                  ? null
+                  : const DrawerView(),
+              body: controller.drawerIndex.value == 0
+                  ? Constant.singleOrderReceive == true
+                      ? const HomeScreen(
                           isAppBarShow: false,
                         )
-                      : controller.drawerIndex.value == 3
-                          ? const WithdrawMethodSetupScreen()
-                          : controller.drawerIndex.value == 4
-                              ? const VerificationScreen()
-                              : controller.drawerIndex.value == 5
-                                  ? const DriverInboxScreen()
-                                  : controller.drawerIndex.value == 6
-                                      ? const ChangeLanguageScreen()
-                                      : controller.drawerIndex.value == 7
-                                          ? const TermsAndConditionScreen(
-                                              type: "temsandcondition")
-                                          : const TermsAndConditionScreen(
-                                              type: "privacy"),
+                      : const HomeScreenMultipleOrder()
+                  : controller.drawerIndex.value == 1
+                      ? const OrderListScreen()
+                      : controller.drawerIndex.value == 2
+                          ? const WalletScreen(
+                              isAppBarShow: false,
+                            )
+                          : controller.drawerIndex.value == 3
+                              ? const WithdrawMethodSetupScreen()
+                              : controller.drawerIndex.value == 4
+                                  ? const VerificationScreen()
+                                  : controller.drawerIndex.value == 5
+                                      ? const DriverInboxScreen()
+                                      : controller.drawerIndex.value == 6
+                                          ? const ChangeLanguageScreen()
+                                          : controller.drawerIndex.value == 7
+                                              ? const TermsAndConditionScreen(
+                                                  type: "temsandcondition")
+                                              : const TermsAndConditionScreen(
+                                                  type: "privacy"),
+            );
+          },
         );
-      },
+      }
     );
   }
 }

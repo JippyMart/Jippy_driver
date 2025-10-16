@@ -1,6 +1,6 @@
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
-import 'package:driver/controllers/pickup_order_controller.dart';
+import 'package:driver/app/home_screen/screens/pickup_order_screen/controller/pickup_order_controller.dart';
 import 'package:driver/models/cart_product_model.dart';
 import 'package:driver/themes/app_them_data.dart';
 import 'package:driver/themes/responsive.dart';

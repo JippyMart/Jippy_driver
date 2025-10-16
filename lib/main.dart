@@ -41,6 +41,7 @@ void main() async {
   }, (error, stackTrace) {});
 }
 
+final RxBool isInPipMode = false.obs; // 👈 global reactive variable
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -53,8 +54,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    super.initState();
     getCurrentAppTheme();
     WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Preferences.getString(Preferences.languageCodeKey)
           .toString()
@@ -63,63 +66,64 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         LocalizationService().changeLocale(languageModel.slug.toString());
       } else {
         LanguageModel languageModel =
-            LanguageModel(slug: "en", isRtl: false, title: "English");
+        LanguageModel(slug: "en", isRtl: false, title: "English");
         Preferences.setString(
             Preferences.languageCodeKey, jsonEncode(languageModel.toJson()));
       }
     });
-    super.initState();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.paused) {
+        state == AppLifecycleState.inactive) {
       AudioPlayerService.initAudio();
+      enterPipMode();
+    }else{
+      isInPipMode.value = false;
     }
-    if (state == AppLifecycleState.inactive||state == AppLifecycleState.paused  ) {
-         floatingButton();
-      }
     getCurrentAppTheme();
   }
-  Future<void>  floatingButton()async{
-    AndroidPIP().enterPipMode(aspectRatio: [7, 9],);
+
+  Future<void> enterPipMode() async {
+    try {
+      await AndroidPIP().enterPipMode(aspectRatio: [7, 9]);
+      isInPipMode.value = true; // 👈 notify globally
+    } catch (e) {
+      debugPrint("Error entering PiP: $e");
+    }
   }
+
   void getCurrentAppTheme() async {
     themeChangeProvider.darkTheme =
-        await themeChangeProvider.darkThemePreference.getTheme();
+    await themeChangeProvider.darkThemePreference.getTheme();
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) {
-        return themeChangeProvider;
-      },
+      create: (_) => themeChangeProvider,
       child: Consumer<DarkThemeProvider>(
         builder: (context, value, child) {
           return GetMaterialApp(
             title: 'Driver'.tr,
             debugShowCheckedModeBanner: false,
             theme: Styles.themeData(
-                themeChangeProvider.darkTheme == 0
-                    ? true
-                    : themeChangeProvider.darkTheme == 1
-                        ? false
-                        : false,
-                context),
-            localizationsDelegates: const [
-              CountryLocalizations.delegate,
-            ],
+              themeChangeProvider.darkTheme == 0
+                  ? true
+                  : themeChangeProvider.darkTheme == 1
+                  ? false
+                  : false,
+              context,
+            ),
+            localizationsDelegates: const [CountryLocalizations.delegate],
             locale: LocalizationService.locale,
             fallbackLocale: LocalizationService.locale,
             translations: LocalizationService(),
             builder: EasyLoading.init(),
             home: GetBuilder<GlobalSettingController>(
               init: GlobalSettingController(),
-              builder: (context) {
-                return const SplashScreen();
-              },
+              builder: (_) => const SplashScreen(),
             ),
           );
         },
@@ -127,3 +131,100 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
   }
 }
+// class MyApp extends StatefulWidget {
+//   const MyApp({super.key});
+//
+//   @override
+//   State<MyApp> createState() => _MyAppState();
+// }
+//
+// class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+//   DarkThemeProvider themeChangeProvider = DarkThemeProvider();
+//   bool isInPipMode = false; // ✅ Track PiP mode
+//   @override
+//   void initState() {
+//     getCurrentAppTheme();
+//     WidgetsBinding.instance.addObserver(this);
+//     WidgetsBinding.instance.addPostFrameCallback((_) {
+//       if (Preferences.getString(Preferences.languageCodeKey)
+//           .toString()
+//           .isNotEmpty) {
+//         LanguageModel languageModel = Constant.getLanguage();
+//         LocalizationService().changeLocale(languageModel.slug.toString());
+//       } else {
+//         LanguageModel languageModel =
+//             LanguageModel(slug: "en", isRtl: false, title: "English");
+//         Preferences.setString(
+//             Preferences.languageCodeKey, jsonEncode(languageModel.toJson()));
+//       }
+//     });
+//     super.initState();
+//   }
+//
+//   @override
+//   void didChangeAppLifecycleState(AppLifecycleState state) {
+//     if (state == AppLifecycleState.paused ||
+//         state == AppLifecycleState.paused) {
+//       AudioPlayerService.initAudio();
+//     }
+//     if (state == AppLifecycleState.inactive||state == AppLifecycleState.paused  ) {
+//       enterPipMode();
+//       }
+//     getCurrentAppTheme();
+//   }
+//   Future<void> enterPipMode() async {
+//     try {
+//       await AndroidPIP().enterPipMode(aspectRatio: [7, 9]);
+//       setState(() {
+//         isInPipMode = true; // ✅ mark as PiP mode
+//       });
+//     } catch (e) {
+//       debugPrint("Error entering PiP: $e");
+//     }
+//   }
+//   void getCurrentAppTheme() async {
+//     themeChangeProvider.darkTheme =
+//         await themeChangeProvider.darkThemePreference.getTheme();
+//   }
+//   void exitPipMode() {
+//     setState(() {
+//       isInPipMode = false;
+//     });
+//   }
+//   @override
+//   Widget build(BuildContext context) {
+//     return ChangeNotifierProvider(
+//       create: (_) {
+//         return themeChangeProvider;
+//       },
+//       child: Consumer<DarkThemeProvider>(
+//         builder: (context, value, child) {
+//           return GetMaterialApp(
+//             title: 'Driver'.tr,
+//             debugShowCheckedModeBanner: false,
+//             theme: Styles.themeData(
+//                 themeChangeProvider.darkTheme == 0
+//                     ? true
+//                     : themeChangeProvider.darkTheme == 1
+//                         ? false
+//                         : false,
+//                 context),
+//             localizationsDelegates: const [
+//               CountryLocalizations.delegate,
+//             ],
+//             locale: LocalizationService.locale,
+//             fallbackLocale: LocalizationService.locale,
+//             translations: LocalizationService(),
+//             builder: EasyLoading.init(),
+//             home: GetBuilder<GlobalSettingController>(
+//               init: GlobalSettingController(),
+//               builder: (context) {
+//                 return const SplashScreen();
+//               },
+//             ),
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }

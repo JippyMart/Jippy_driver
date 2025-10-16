@@ -51,7 +51,8 @@ class SplashController extends GetxController {
                 log(' [32m$fromScreen -> Updating user with FCM token... [0m');
                 await FireStoreUtils.updateUser(userModel);
                 log(' [32m$fromScreen -> DashBoardScreen [0m');
-                Get.offAll(const DashBoardScreen());
+                // Get.offAll(const DashBoardScreen());
+                Get.offAll(() => DashBoardScreen(userModel: userModel));
               } else {
                 log(' [32m$fromScreen -> User inactive, signing out... [0m');
                 await FirebaseAuth.instance.signOut();

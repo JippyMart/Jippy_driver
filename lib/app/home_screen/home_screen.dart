@@ -3,12 +3,12 @@ import 'dart:developer';
 import 'package:android_pip/android_pip.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/app/chat_screens/chat_screen.dart';
-import 'package:driver/app/home_screen/deliver_order_screen.dart';
-import 'package:driver/app/home_screen/pickup_order_screen.dart';
+import 'package:driver/app/home_screen/screens/delivery_order_screen/deliver_order_screen.dart';
+import 'package:driver/app/home_screen/screens/pickup_order_screen/pickup_order_screen.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
 import 'package:driver/controllers/dash_board_controller.dart';
-import 'package:driver/controllers/home_controller.dart';
+import 'package:driver/app/home_screen/controller/home_controller.dart';
 import 'package:driver/models/order_model.dart';
 import 'package:driver/models/user_model.dart';
 import 'package:driver/services/audio_player_service.dart';
@@ -29,49 +29,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as location;
 import 'package:provider/provider.dart';
 import 'package:timelines_plus/timelines_plus.dart';
-
 import '../order_list_screen/order_details_screen.dart';
-import 'package:android_pip/android_pip.dart';
 
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   final bool? isAppBarShow;
-
   const HomeScreen({super.key, this.isAppBarShow});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  // Future<void>  floatingButton()async{
-  //    AndroidPIP().enterPipMode(aspectRatio: [7, 9],);
-  // }
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // 1. Register the observer to listen for lifecycle changes
-  //   WidgetsBinding.instance.addObserver(this);
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   // Unregister the observer
-  //   WidgetsBinding.instance.removeObserver(this);
-  //   super.dispose();
-  // }
-  //
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   super.didChangeAppLifecycleState(state);
-  //   if (state == AppLifecycleState.inactive ) {
-  //      floatingButton();
-  //   }
-  // }
-
-
   @override
   Widget build(BuildContext context) {
 
@@ -81,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       init: HomeController(),
       builder: (controller) {
         return Scaffold(
-          appBar: widget.isAppBarShow == true
+          appBar: isAppBarShow == true
               ? AppBar(
                   backgroundColor: themeChange.getThem()
                       ? AppThemeData.grey900
@@ -150,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     ? AppThemeData.grey50
                                     : AppThemeData.grey500,
                                 fontSize: 16,
-                                fontFamily: AppThemeData.bold),
+                                fontFamily: AppThemeData.bold,),
                           ),
                           const SizedBox(
                             height: 20,
@@ -475,14 +440,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         Constant.userModel?.id) {
                                       controller.clearMap();
                                     }
-                                    return SafeArea(
-                                      child: Center(
-                                        child: Text(
-                                          'No active orders. Waiting for new orders...',
-                                          style: TextStyle(
-                                              fontSize: 18, color: Colors.grey),
-                                        ),
-                                      ),
+                                    return Center(
+                                      // child: Text(
+                                      //   'No active orders. Waiting for new orders...',
+                                      //   style: TextStyle(
+                                      //       fontSize: 18, color: Colors.grey),
+                                      // ),
                                     );
                                   })(),
 

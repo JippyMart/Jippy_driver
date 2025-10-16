@@ -1,7 +1,7 @@
 import 'package:driver/app/chat_screens/chat_screen.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
-import 'package:driver/controllers/deliver_order_controller.dart';
+import 'package:driver/app/home_screen/screens/delivery_order_screen/controller/deliver_order_controller.dart';
 import 'package:driver/models/cart_product_model.dart';
 import 'package:driver/models/user_model.dart';
 import 'package:driver/themes/app_them_data.dart';

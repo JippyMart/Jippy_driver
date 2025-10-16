@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
-import 'package:driver/controllers/home_controller.dart';
+import 'package:driver/app/home_screen/controller/home_controller.dart';
 import 'package:driver/models/order_model.dart';
 import 'package:driver/models/user_model.dart';
 import 'package:driver/utils/fire_store_utils.dart';
