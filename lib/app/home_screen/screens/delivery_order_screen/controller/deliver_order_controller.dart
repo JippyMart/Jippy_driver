@@ -12,6 +12,17 @@ class DeliverOrderController extends GetxController {
   RxBool isLoading = true.obs;
   RxBool conformPickup = false.obs;
 
+
+  void confirmPickupFunction(){
+    print("${conformPickup.value} conformPickup " );
+ if(   conformPickup.value
+ ){
+  conformPickup.value =false;
+  }else{
+  conformPickup.value =true;
+  }
+  }
+
   @override
   void onInit() {
     AppLogger.log('DeliverOrderController onInit() called', tag: 'Controller');

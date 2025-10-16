@@ -878,17 +878,17 @@ Obx(
               ),
 
               // Surge Fee Section - Made More Prominent
-              // FutureBuilder<double?>(
-              //   future: fetchOrderSergeFee(
-              //       controller.currentOrder.value.id.toString()),
-              //   builder: (context, snapshot) {
-              //     final surgeFee = snapshot.data ?? 0.0;
-              //     final hasSurge = surgeFee > 0;
-              FutureBuilder<Map<String, dynamic>?>(
-                future: _getCalculatedCharges(controller),
+              FutureBuilder<double?>(
+                future: fetchOrderSergeFee(
+                    controller.currentOrder.value.id.toString()),
                 builder: (context, snapshot) {
-                  final charges = snapshot.data;
-                  final hasCalculatedCharges = charges != null;
+                  final surgeFee = snapshot.data ?? 0.0;
+                  final hasSurge = surgeFee > 0;
+              // FutureBuilder<Map<String, dynamic>?>(
+              //   future: _getCalculatedCharges(controller),
+              //   builder: (context, snapshot) {
+              //     final charges = snapshot.data;
+              //     final hasCalculatedCharges = charges != null;
                   return Column(
                     children: [
                       // Surge Fee Badge - Only show when there's surge
@@ -1019,7 +1019,47 @@ Obx(
                       //   ),
                       //   const SizedBox(height: 8),
                       // ],
-
+                      controller.currentOrder.value.tipAmount == null ||
+                          controller.currentOrder.value.tipAmount!.isEmpty ||
+                          double.parse(controller.currentOrder.value.tipAmount
+                              .toString()) <=
+                              0
+                          ? const SizedBox()
+                          : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "Tips".tr,
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                fontFamily: AppThemeData.regular,
+                                color: themeChange.getThem()
+                                    ? AppThemeData.grey300
+                                    : AppThemeData.grey600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            Constant.amountShow(
+                                amount:
+                                controller.currentOrder.value.tipAmount ??
+                                    "0.0"),
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontFamily: AppThemeData.semiBold,
+                              color: themeChange.getThem()
+                                  ? AppThemeData.grey50
+                                  : AppThemeData.grey900,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
                       // Delivery Charge
                       Visibility(
                         visible:
@@ -1060,107 +1100,110 @@ Obx(
                       ),
 
                       // Surge Fee - Always show but with different styling
-                      // Container(
-                      //   padding: const EdgeInsets.symmetric(
-                      //       vertical: 6, horizontal: 8),
-                      //   decoration: BoxDecoration(
-                      //     color:
-                      //     hasSurge
-                      //         ? AppThemeData.success50.withOpacity(0.3)
-                      //         :
-                      //     Colors.transparent,
-                      //     borderRadius: BorderRadius.circular(6),
-                      //   ),
-                      //   child: Row(
-                      //     crossAxisAlignment: CrossAxisAlignment.start,
-                      //     children: [
-                      //       Expanded(
-                      //         child: Row(
-                      //           children: [
-                      //             Text(
-                      //               "Surge Fee".tr,
-                      //               textAlign: TextAlign.start,
-                      //               style: TextStyle(
-                      //                 fontFamily: AppThemeData.regular,
-                      //                 color: themeChange.getThem()
-                      //                     ? AppThemeData.grey300
-                      //                     : AppThemeData.grey600,
-                      //                 fontSize: 16,
-                      //               ),
-                      //             ),
-                      //             if (hasSurge) const SizedBox(width: 6),
-                      //             if (hasSurge)
-                      //               Icon(
-                      //                 Icons.trending_up_rounded,
-                      //                 color: AppThemeData.success400,
-                      //                 size: 16,
-                      //               ),
-                      //           ],
-                      //         ),
-                      //       ),
-                      //       Text(
-                      //         "+${surgeFee.toStringAsFixed(2)}",
-                      //         textAlign: TextAlign.start,
-                      //         style: TextStyle(
-                      //           fontFamily: AppThemeData.semiBold,
-                      //           color: hasSurge
-                      //               ? AppThemeData.success500
-                      //               : (themeChange.getThem()
-                      //                   ? AppThemeData.grey50
-                      //                   : AppThemeData.grey900),
-                      //           fontSize: hasSurge ? 17 : 16,
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-                      //
-                      // // Total Earnings Estimate - New Section
-                      // if (hasSurge)
-                      //   Column(
-                      //     children: [
-                      //       const SizedBox(height: 8),
-                      //       Container(
-                      //         padding: const EdgeInsets.symmetric(
-                      //             vertical: 8, horizontal: 12),
-                      //         decoration: BoxDecoration(
-                      //           color: AppThemeData.primary50.withOpacity(0.2),
-                      //           borderRadius: BorderRadius.circular(8),
-                      //           border: Border.all(
-                      //             color: AppThemeData.primary200,
-                      //             width: 1,
-                      //           ),
-                      //         ),
-                      //         child: Row(
-                      //           children: [
-                      //             Expanded(
-                      //               child: Text(
-                      //                 "Total Earnings".tr,
-                      //                 textAlign: TextAlign.start,
-                      //                 style: TextStyle(
-                      //                   fontFamily: AppThemeData.semiBold,
-                      //                   color: themeChange.getThem()
-                      //                       ? AppThemeData.grey50
-                      //                       : AppThemeData.grey900,
-                      //                   fontSize: 16,
-                      //                 ),
-                      //               ),
-                      //             ),
-                      //             Text(
-                      //               // Calculate total: delivery charge + surge fee
-                      //               "${(23.00 + surgeFee).toStringAsFixed(2)}",
-                      //               textAlign: TextAlign.start,
-                      //               style: TextStyle(
-                      //                 fontFamily: AppThemeData.bold,
-                      //                 color: AppThemeData.primary500,
-                      //                 fontSize: 18,
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color:
+                          hasSurge
+                              ? AppThemeData.success50.withOpacity(0.3)
+                              :
+                          Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Surge Fee".tr,
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                      fontFamily: AppThemeData.regular,
+                                      color: themeChange.getThem()
+                                          ? AppThemeData.grey300
+                                          : AppThemeData.grey600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  if (hasSurge) const SizedBox(width: 6),
+                                  if (hasSurge)
+                                    Icon(
+                                      Icons.trending_up_rounded,
+                                      color: AppThemeData.success400,
+                                      size: 16,
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              "+${surgeFee.toStringAsFixed(2)}",
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                fontFamily: AppThemeData.semiBold,
+                                color: hasSurge
+                                    ? AppThemeData.success500
+                                    : (themeChange.getThem()
+                                        ? AppThemeData.grey50
+                                        : AppThemeData.grey900),
+                                fontSize: hasSurge ? 17 : 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Total Earnings Estimate - New Section
+                      if (hasSurge)
+                        Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: AppThemeData.primary50.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppThemeData.primary200,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "Total Earnings".tr,
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                        fontFamily: AppThemeData.semiBold,
+                                        color: themeChange.getThem()
+                                            ? AppThemeData.grey50
+                                            : AppThemeData.grey900,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    // Calculate total: delivery charge + surge fee
+                                    // "${(23.00 + surgeFee).toStringAsFixed(2)}",
+                                    "${double.parse(controller.currentOrder.value.tipAmount
+                                        .toString())+ controller.totalCalculatedCharge.value + (surgeFee)}",
+                                    // (surgeFee).toStringAsFixed(2),
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                      fontFamily: AppThemeData.bold,
+                                      color: AppThemeData.primary500,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   );
                 },
@@ -1169,50 +1212,50 @@ Obx(
               const SizedBox(height: 8),
 
               // Tips Section
-              controller.currentOrder.value.tipAmount == null ||
-                      controller.currentOrder.value.tipAmount?.isEmpty ==
-                          true ||
-                      double.parse(controller.currentOrder.value.tipAmount
-                                  ?.toString() ??
-                              "0.0") <=
-                          0
-                  ? const SizedBox()
-                  : Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                "Tips".tr,
-                                textAlign: TextAlign.start,
-                                style: TextStyle(
-                                  fontFamily: AppThemeData.regular,
-                                  color: themeChange.getThem()
-                                      ? AppThemeData.grey300
-                                      : AppThemeData.grey600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              Constant.amountShow(
-                                  amount:
-                                      controller.currentOrder.value.tipAmount),
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontFamily: AppThemeData.semiBold,
-                                color: themeChange.getThem()
-                                    ? AppThemeData.grey50
-                                    : AppThemeData.grey900,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
+              // controller.currentOrder.value.tipAmount == null ||
+              //         controller.currentOrder.value.tipAmount?.isEmpty ==
+              //             true ||
+              //         double.parse(controller.currentOrder.value.tipAmount
+              //                     ?.toString() ??
+              //                 "0.0") <=
+              //             0
+              //     ? const SizedBox()
+              //     : Column(
+              //         children: [
+              //           Row(
+              //             crossAxisAlignment: CrossAxisAlignment.start,
+              //             children: [
+              //               Expanded(
+              //                 child: Text(
+              //                   "Tips".tr,
+              //                   textAlign: TextAlign.start,
+              //                   style: TextStyle(
+              //                     fontFamily: AppThemeData.regular,
+              //                     color: themeChange.getThem()
+              //                         ? AppThemeData.grey300
+              //                         : AppThemeData.grey600,
+              //                     fontSize: 16,
+              //                   ),
+              //                 ),
+              //               ),
+              //               Text(
+              //                 Constant.amountShow(
+              //                     amount:
+              //                         controller.currentOrder.value.tipAmount),
+              //                 textAlign: TextAlign.start,
+              //                 style: TextStyle(
+              //                   fontFamily: AppThemeData.semiBold,
+              //                   color: themeChange.getThem()
+              //                       ? AppThemeData.grey50
+              //                       : AppThemeData.grey900,
+              //                   fontSize: 16,
+              //                 ),
+              //               ),
+              //             ],
+              //           ),
+              //           const SizedBox(height: 8),
+              //         ],
+              //       ),
 
               const SizedBox(height: 10),
 
@@ -1872,47 +1915,7 @@ Obx(
                 const SizedBox(
                   height: 5,
                 ),
-                controller.currentOrder.value.tipAmount == null ||
-                        controller.currentOrder.value.tipAmount!.isEmpty ||
-                        double.parse(controller.currentOrder.value.tipAmount
-                                .toString()) <=
-                            0
-                    ? const SizedBox()
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Tips".tr,
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontFamily: AppThemeData.regular,
-                                color: themeChange.getThem()
-                                    ? AppThemeData.grey300
-                                    : AppThemeData.grey600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            Constant.amountShow(
-                                amount:
-                                    controller.currentOrder.value.tipAmount ??
-                                        "0.0"),
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                              fontFamily: AppThemeData.semiBold,
-                              color: themeChange.getThem()
-                                  ? AppThemeData.grey50
-                                  : AppThemeData.grey900,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                const SizedBox(
-                  height: 10,
-                ),
+
               ],
             ),
           ),
@@ -2010,8 +2013,8 @@ Future<double?> fetchOrderSergeFee(String orderId) async {
       .collection('order_Billing')
       .doc(orderId)
       .get();
-  if (doc.exists && doc.data() != null && doc.data()!['serge_fee'] != null) {
-    return double.tryParse(doc.data()!['serge_fee'].toString());
+  if (doc.exists && doc.data() != null && doc.data()!['total_surge_fee'] != null) {
+    return double.tryParse(doc.data()!['total_surge_fee'].toString());
   }
   return null;
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:driver/app/home_screen/home_screen.dart' show fetchOrderSergeFee;
 import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/send_notification.dart';
@@ -166,6 +167,8 @@ class HomeController extends GetxController {
   // Update order with calculated charges
   Future<void> updateOrderWithCalculatedCharges() async {
     // Create a map to store calculated charges
+ double? surgeAmount =await   fetchOrderSergeFee(
+        currentOrder.value.id.toString());
     Map<String, dynamic> calculatedCharges = {
       'driverToRestaurantDistance': driverToRestaurantDistance.value,
       'driverToRestaurantDuration': driverToRestaurantDuration.value,
@@ -173,7 +176,10 @@ class HomeController extends GetxController {
       'restaurantToCustomerDistance': restaurantToCustomerDistance.value,
       'restaurantToCustomerDuration': restaurantToCustomerDuration.value,
       'restaurantToCustomerCharge': restaurantToCustomerCharge.value,
-      'totalCalculatedCharge': totalCalculatedCharge.value,
+      'tipsAmount':currentOrder.value.tipAmount,
+      'surgeAmount':surgeAmount.toString(),
+      'totalCalculatedCharge': "${totalCalculatedCharge.value+(surgeAmount??0 ) + double.parse(currentOrder.value.tipAmount
+          .toString())}",
       'calculatedAt': FieldValue.serverTimestamp(),
     };
     print( "${calculatedCharges} calculatedCharges");

@@ -464,34 +464,39 @@ class DeliverOrderScreen extends StatelessWidget {
                                   const SizedBox(
                                     height: 10,
                                   ),
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        side: const BorderSide(
-                                          color: AppThemeData.success400,
-                                          width: 1.5,
+                                  InkWell(
+                                    onTap: (){
+                                     controller.confirmPickupFunction();
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Checkbox(
+                                          side: const BorderSide(
+                                            color: AppThemeData.success400,
+                                            width: 1.5,
+                                          ),
+                                          value: controller.conformPickup.value,
+                                          activeColor: AppThemeData.success400,
+                                          focusColor: AppThemeData.success400,
+                                          onChanged: (value) {
+                                            if (value != null) {
+                                              controller.conformPickup.value =
+                                                  value;
+                                            }
+                                          },
                                         ),
-                                        value: controller.conformPickup.value,
-                                        activeColor: AppThemeData.success400,
-                                        focusColor: AppThemeData.success400,
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            controller.conformPickup.value =
-                                                value;
-                                          }
-                                        },
-                                      ),
-                                      Text(
-                                        "${'Give'.tr} ${controller.totalQuantity.value.toString()} ${'Items to the customer'.tr}"
-                                            .tr,
-                                        style: TextStyle(
-                                            color: themeChange.getThem()
-                                                ? AppThemeData.success400
-                                                : AppThemeData.success400,
-                                            fontSize: 16,
-                                            fontFamily: AppThemeData.medium),
-                                      ),
-                                    ],
+                                        Text(
+                                          "${'Give'.tr} ${controller.totalQuantity.value.toString()} ${'Items to the customer'.tr}"
+                                              .tr,
+                                          style: TextStyle(
+                                              color: themeChange.getThem()
+                                                  ? AppThemeData.success400
+                                                  : AppThemeData.success400,
+                                              fontSize: 16,
+                                              fontFamily: AppThemeData.medium),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
