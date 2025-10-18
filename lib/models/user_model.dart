@@ -33,6 +33,7 @@ class UserModel {
   String? subscriptionPlanId;
   Timestamp? subscriptionExpiryDate;
   SubscriptionPlanModel? subscriptionPlan;
+  num? deliveryAmount;
 
   UserModel(
       {this.id,
@@ -63,7 +64,7 @@ class UserModel {
       this.provider,
       this.subscriptionPlanId,
       this.subscriptionExpiryDate,
-      this.subscriptionPlan});
+      this.subscriptionPlan,this.deliveryAmount});
 
   fullName() {
     return "${firstName ?? ''} ${lastName ?? ''}";
@@ -79,6 +80,7 @@ class UserModel {
     countryCode = json['countryCode'];
     phoneNumber = json['phoneNumber'];
     walletAmount = json['wallet_amount'] ?? 0;
+    deliveryAmount = json['deliveryAmount']??0;
     createdAt = json['createdAt'];
     active = json['active'];
     isActive = json['isActive'];
@@ -124,6 +126,7 @@ class UserModel {
     data['countryCode'] = countryCode;
     data['phoneNumber'] = phoneNumber;
     data['wallet_amount'] = walletAmount ?? 0;
+    data['deliveryAmount']= deliveryAmount??0;
     data['createdAt'] = createdAt;
     data['active'] = active;
     data['isActive'] = isActive;

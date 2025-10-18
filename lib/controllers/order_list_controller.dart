@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/models/order_model.dart';
+import 'package:driver/models/user_model.dart';
 import 'package:driver/utils/fire_store_utils.dart';
 import 'package:driver/utils/app_logger.dart';
 import 'package:get/get.dart';
@@ -59,5 +60,7 @@ class OrderListController extends GetxController{
 
     isLoading.value = false;
   }
+
+
 
 }

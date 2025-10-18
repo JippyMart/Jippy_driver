@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/app/chat_screens/ChatVideoContainer.dart';
+import 'package:driver/app/wallet_screen/screens/model/delivery_amount_model.dart';
 import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
@@ -139,6 +140,22 @@ class FireStoreUtils {
     });
     return isAdded;
   }
+  static Future<bool?> updateUserDeliveryAmount(
+      {required String amount, required String userId}) async {
+    bool isAdded = false;
+    await getUserProfile(userId).then((value) async {
+      if (value != null) {
+        UserModel userModel = value;
+        userModel.deliveryAmount =
+            double.parse(userModel.deliveryAmount.toString()) +
+                double.parse(amount);
+        await FireStoreUtils.updateUser(userModel).then((value) {
+          isAdded = value;
+        });
+      }
+    });
+    return isAdded;
+  }
 
   static Future<bool> updateUser(UserModel userModel) async {
     bool isUpdate = false;
@@ -199,6 +216,22 @@ class FireStoreUtils {
         .collection(CollectionName.wallet)
         .doc(walletTransactionModel.id)
         .set(walletTransactionModel.toJson())
+        .then((value) {
+      isAdded = true;
+    }).catchError((error) {
+      log("Failed to update user: $error");
+      isAdded = false;
+    });
+    return isAdded;
+  }
+  static Future<bool?> setDriverWalletRecord(
+      Map<String, dynamic> driverWalletTransaction) async {
+    bool isAdded = false;
+    print(" transactionModel id ${driverWalletTransaction['id']}");
+    await fireStore
+        .collection(CollectionName.deliveryWalletRecord)
+        .doc(driverWalletTransaction['id'])
+        .set(driverWalletTransaction)
         .then((value) {
       isAdded = true;
     }).catchError((error) {
@@ -385,6 +418,24 @@ class FireStoreUtils {
       log(error.toString());
     });
     return walletTransactionList;
+  }
+  static Future<List<DriverAmountWalletTransactionModel>?> getDriverAmountWalletTransaction() async {
+    List<DriverAmountWalletTransactionModel> driverAmountWalletTransactionModelList = [];
+    await fireStore
+        .collection(CollectionName.deliveryWalletRecord)
+        .where('driverId', isEqualTo: FireStoreUtils.getCurrentUid())
+        .orderBy('date', descending: true)
+        .get()
+        .then((value) {
+      for (var element in value.docs) {
+        DriverAmountWalletTransactionModel driverAmountWalletTransactionModel =
+        DriverAmountWalletTransactionModel.fromJson(element.data());
+        driverAmountWalletTransactionModelList.add(driverAmountWalletTransactionModel);
+      }
+    }).catchError((error) {
+      log("getDriverAmountWalletTransaction ${error.toString()}");
+    });
+    return driverAmountWalletTransactionModelList;
   }
 
   static Future getPaymentSettingsData() async {

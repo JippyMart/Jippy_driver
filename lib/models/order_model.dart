@@ -105,7 +105,12 @@ class OrderModel {
     takeAway = json['takeAway'];
     rejectedByDrivers = json['rejectedByDrivers'] ?? [];
     toPay = json['ToPay']?.toString(); // Parse 'ToPay' from Firestore
-    calculatedCharges: json['calculatedCharges'] != null
+    // calculatedCharges: json['calculatedCharges'] != null
+    //     ? Map<String, dynamic>.from(json['calculatedCharges'])
+    //     : null;
+
+    // ✅ Fixed line:
+    calculatedCharges = json['calculatedCharges'] != null
         ? Map<String, dynamic>.from(json['calculatedCharges'])
         : null;
   }

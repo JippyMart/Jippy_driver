@@ -305,7 +305,6 @@ class WalletController extends GetxController {
       return;
     }
     */
-    
     print('💰 [Wallet Controller] ✅ Proceeding with wallet top-up...');
     WalletTransactionModel transactionModel = WalletTransactionModel(
         id: Constant.getUuid(),
@@ -331,6 +330,56 @@ class WalletController extends GetxController {
       }
     });
 
+    ShowToastDialog.showToast("Amount Top-up successfully".tr);
+  }
+  // {
+  // "id": "completion_2024_01_15_driver_123",
+  // "driverId": "driver_123",
+  // "date": "2026-01-15",
+  // "zoneId": "ongole_zone_id",
+  // "completedOrders": [
+  // {
+  // "orderId": "order_001",
+  // "completedAt": "2024-01-15T09:00:00Z",
+  // "earnings": 25.50,
+  // "calculatedCharges": 20.00,
+  // "tipAmount": 3.00,
+  // "surgeFee": 2.50
+  // }
+  // ],
+  // "totalEarnings": 25.50,
+  // "orderCount": 1,
+  // "bonusEligible": false,
+  // "bonusAwarded": false,
+  // "bonusAmount": 0
+  // }
+  Rx<TextEditingController> driverRecordAmountController = TextEditingController().obs;
+  //test addWalletBonusSave
+  addWalletBonusSave({ bool bonus =false,required String zoneId ,int bonusAmount =0}) async {
+    Map<String, dynamic>  transactionModel =   {
+    "id": Constant.getUuid(),
+    "driverId": FireStoreUtils.getCurrentUid(),
+    "date":  Timestamp.now(),
+    "zoneId": zoneId,
+    "totalEarnings": double.parse(driverRecordAmountController.value.text),
+    "bonus": bonus,
+    "type":bonus?"bonus":"delivery",
+      "bonusAmount":bonusAmount,
+    };
+    print(" transactionModel ${transactionModel}");
+
+    await FireStoreUtils.setDriverWalletRecord(transactionModel)
+        .then((value) async {
+      if (value == true) {
+        await FireStoreUtils.updateUserDeliveryAmount(
+            amount: driverRecordAmountController.value.text,
+            userId: FireStoreUtils.getCurrentUid())
+            .then((value) {
+          getWalletTransaction();
+          Get.back();
+        });
+      }
+    });
     ShowToastDialog.showToast("Amount Top-up successfully".tr);
   }
 

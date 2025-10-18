@@ -490,7 +490,8 @@ class OrderListScreen extends StatelessWidget {
                                                           ),
                                                         ),
                                                       ),
-                                                      Text("23.00",
+                                                      Text(
+                                                        "${(double.tryParse(orderModel.calculatedCharges?['totalCalculatedCharge']?.toString().trim() ?? '0') ?? 0)-(double.tryParse(orderModel.tipAmount.toString().trim()) ?? 0)}",
                                                         // Constant.amountShow(
                                                         //     amount: orderModel
                                                         //         .deliveryCharge),

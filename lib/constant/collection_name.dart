@@ -32,4 +32,6 @@ class CollectionName {
   static const String wallet = "wallet";
   static const String withdrawMethod = "withdraw_method";
   static const String zone = "zone";
+  static const String zoneBonusSettings = "zone_bonus_settings";
+  static const String deliveryWalletRecord = "delivery_wallet_record";
 }

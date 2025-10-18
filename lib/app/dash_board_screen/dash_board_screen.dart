@@ -30,6 +30,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../main.dart';
+import '../wallet_screen/screens/delivery_amount_wallet_screen/delivery_amount_wallet_screen.dart';
 
 // class DashBoardScreen extends StatelessWidget {
 //   const DashBoardScreen({super.key});
@@ -89,10 +90,22 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     visible: Constant.userModel?.vendorID?.isEmpty == true,
                     child: InkWell(
                         onTap: () {
-                          Get.to(const WalletScreen(isAppBarShow: true));
+                          Get.to(const DeliveryAmountWalletScreen(isAppBarShow: true));
                         },
-                        child: SvgPicture.asset("assets/icons/ic_wallet_home.svg")),
+                        child: SvgPicture.asset("assets/icons/delivery_wallet.svg",height: 28,width: 28
+                          ,)),
                   ),
+                  // const SizedBox(
+                  //   width: 10,
+                  // ),
+                  // Visibility(
+                  //   visible: Constant.userModel?.vendorID?.isEmpty == true,
+                  //   child: InkWell(
+                  //       onTap: () {
+                  //         Get.to(const WalletScreen(isAppBarShow: true));
+                  //       },
+                  //       child: SvgPicture.asset("assets/icons/ic_wallet_home.svg")),
+                  // ),
                   const SizedBox(
                     width: 10,
                   ),

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/app/wallet_screen/payment_list_screen.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
-import 'package:driver/controllers/wallet_controller.dart';
+import 'package:driver/app/wallet_screen/controller/wallet_controller.dart';
 import 'package:driver/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

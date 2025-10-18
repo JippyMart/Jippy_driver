@@ -1,10 +1,18 @@
+import 'dart:developer';
+
+import 'package:driver/app/home_screen/controller/home_controller.dart';
+import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/send_notification.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
+import 'package:driver/app/wallet_screen/controller/wallet_controller.dart';
 import 'package:driver/models/order_model.dart';
+import 'package:driver/models/user_model.dart';
+import 'package:driver/models/wallet_transaction_model.dart';
 import 'package:driver/services/audio_player_service.dart';
 import 'package:driver/utils/fire_store_utils.dart';
 import 'package:driver/utils/app_logger.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -50,6 +58,112 @@ class DeliverOrderController extends GetxController {
       }
     }
     isLoading.value = false;
+  }
+  Future<int> getTodayCompletedOrdersCount() async {
+    int todayCount = 0;
+
+    try {
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day); // today 00:00
+      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59); // today 23:59:59
+
+      final querySnapshot = await FireStoreUtils.fireStore
+          .collection(CollectionName.restaurantOrders)
+          .where('driverID', isEqualTo: Constant.userModel!.id.toString())
+          .where('status', isEqualTo: Constant.orderCompleted)
+          .where('createdAt', isGreaterThanOrEqualTo: startOfDay)
+          .where('createdAt', isLessThanOrEqualTo: endOfDay)
+          .get();
+
+      todayCount = querySnapshot.docs.length;
+    } catch (e) {
+      log("Error getting today's completed orders: $e");
+    }
+
+    return todayCount;
+  }
+  Future<Map<String, dynamic>?> getZoneBonusByZoneId(String zoneId) async {
+    try {
+      final querySnapshot = await FireStoreUtils.fireStore
+          .collection(CollectionName.zoneBonusSettings)
+          .where('zoneId', isEqualTo: zoneId)
+          .limit(1) // Only fetch one document
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        print("No document found for zoneId: $zoneId");
+        return null; // Return null if no doc
+      }
+
+      // Return the first document's data
+      return querySnapshot.docs.first.data();
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null; // Return null on error
+    }
+  }
+
+
+  WalletController walletController =
+  Get.put(WalletController());
+  // HomeController homeController =
+  // Get.put(HomeController());
+  void deliveryAmountBonusAmount()async{
+    try{
+      print("totalCalculatedCharge and zone id ${Constant.userModel?.zoneId.toString()} ");
+      int orderCount = await getTodayCompletedOrdersCount();
+      // UserModel? userModel = await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid());
+      Map<String, dynamic>? docData = await getZoneBonusByZoneId(Constant.userModel?.zoneId??'');
+      OrderModel? orderModelNew = await FireStoreUtils.getOrderById(
+          orderModel.value.id??"");
+      // await FireStoreUtils.getOrderById(
+      //     homeController.currentOrder.value.id!);
+      double totalCalculatedCharge = double.tryParse(
+          orderModelNew?.calculatedCharges?['totalCalculatedCharge']?.toString() ?? '0'
+      ) ?? 0.0;
+      print("totalCalculatedCharge order Count  $orderCount");
+      print("totalCalculatedCharge and zone id ${Constant.userModel?.zoneId.toString()} $totalCalculatedCharge");
+      print("totalCalculatedCharge currentOrder Value id ${orderModel.value.id} ${orderModelNew?.calculatedCharges?['totalCalculatedCharge']}");
+      if(docData!=null){
+        int requiredOrdersForBonus = int.tryParse(docData['requiredOrdersForBonus'].toString()) ?? 0;
+        int bonusAmount = int.tryParse(docData['bonusAmount'].toString()) ?? 0;
+        if(orderCount==requiredOrdersForBonus ){
+        //   if(orderCount>1 ){
+          final totalAmount = totalCalculatedCharge + bonusAmount;
+          walletController.driverRecordAmountController.value.text = totalAmount.toStringAsFixed(2);
+          walletController.addWalletBonusSave(bonus:true, zoneId: Constant.userModel?.zoneId??'',bonusAmount: bonusAmount,
+          );
+          Get.dialog(
+            AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: const Text("🎉 Congratulations!"),
+              content: Text("You’ve received a bonus of ₹$bonusAmount for completing $requiredOrdersForBonus orders today!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back(),
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
+          );
+          print("Bonus given: $bonusAmount");
+          print("bonusAmount ${bonusAmount}");
+          print("bonusAmount ${requiredOrdersForBonus}");
+        }
+        else{
+          print("totalCalculatedCharge  1 $totalCalculatedCharge");
+          walletController.driverRecordAmountController.value.text = totalCalculatedCharge.toString();
+          walletController.addWalletBonusSave(bonus:false, zoneId: Constant.userModel?.zoneId??'',
+          );
+        }
+      }else{
+        print("totalCalculatedCharge  2 $totalCalculatedCharge");
+        walletController.driverRecordAmountController.value.text = totalCalculatedCharge.toString();
+        walletController.addWalletBonusSave(bonus:false, zoneId: Constant.userModel?.zoneId??'',
+        );
+      }}catch(e){
+      print("totalCalculatedCharge deliveryAmountBonusAmount ${e.toString()} ");
+    }
   }
 
   completedOrder() async {
@@ -105,16 +219,14 @@ class DeliverOrderController extends GetxController {
         return;
       }
       await FireStoreUtils.updateWallateAmount(orderModel.value);
-
       print("[DeliverOrderController] Setting order in Firestore");
       await FireStoreUtils.setOrder(orderModel.value);
-
+      deliveryAmountBonusAmount();
       // Remove order from other drivers' orderRequestData
       await FireStoreUtils.removeOrderFromOtherDrivers(
         orderId: orderModel.value.id!,
         assignedDriverId: orderModel.value.driverID!,
       );
-
       if (Constant.userModel?.vendorID?.isNotEmpty == true) {
         print("[DeliverOrderController] Removing order from user lists");
         Constant.userModel?.orderRequestData?.remove(orderModel.value.id);
@@ -130,7 +242,6 @@ class DeliverOrderController extends GetxController {
           await FireStoreUtils.updateReferralAmount(orderModel.value);
         }
       });
-
       print("[DeliverOrderController] Sending notification to customer");
       if (orderModel.value.author?.fcmToken != null) {
         await SendNotification.sendFcmMessage(

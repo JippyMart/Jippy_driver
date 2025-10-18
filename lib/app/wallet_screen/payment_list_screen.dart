@@ -1,6 +1,6 @@
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
-import 'package:driver/controllers/wallet_controller.dart';
+import 'package:driver/app/wallet_screen/controller/wallet_controller.dart';
 import 'package:driver/payment/createRazorPayOrderModel.dart';
 import 'package:driver/payment/rozorpayConroller.dart';
 import 'package:driver/themes/app_them_data.dart';

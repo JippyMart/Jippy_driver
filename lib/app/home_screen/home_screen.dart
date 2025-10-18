@@ -936,7 +936,6 @@ Obx(
                       //       ],
                       //     ),
                       //   ),
-
                       // Trip Distance
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1099,7 +1098,7 @@ Obx(
                         ]),
                       ),
 
-                      // Surge Fee - Always show but with different styling
+                      if (hasSurge)
                       Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 6, horizontal: 8),
@@ -1156,7 +1155,6 @@ Obx(
                       ),
 
                       // Total Earnings Estimate - New Section
-                      if (hasSurge)
                         Column(
                           children: [
                             const SizedBox(height: 8),
@@ -1258,52 +1256,53 @@ Obx(
               //       ),
 
               const SizedBox(height: 10),
-
               // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: RoundedButtonFill(
-                      title: "Reject".tr,
-                      width: 24,
-                      height: 5.5,
-                      borderRadius: 10,
-                      color: AppThemeData.danger300,
-                      textColor: AppThemeData.grey50,
-                      onPress: () {
-                        AppLogger.log('User clicked Reject Order button',
-                            tag: 'UserAction');
-                        controller.rejectOrder();
-                      },
+              SafeArea(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: RoundedButtonFill(
+                        title: "Reject".tr,
+                        width: 24,
+                        height: 5.5,
+                        borderRadius: 10,
+                        color: AppThemeData.danger300,
+                        textColor: AppThemeData.grey50,
+                        onPress: () {
+                          AppLogger.log('User clicked Reject Order button',
+                              tag: 'UserAction');
+                          controller.rejectOrder();
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: RoundedButtonFill(
-                      title: "Accept".tr,
-                      width: 24,
-                      height: 5.5,
-                      borderRadius: 10,
-                      color: AppThemeData.success400,
-                      textColor: AppThemeData.grey50,
-                      onPress: () async {
-                        AppLogger.log('User clicked Accept Order button',
-                            tag: 'UserAction');
-                        await controller.acceptOrder();
-                        // Manual refresh: fetch latest order and update controller
-                        if (controller.currentOrder.value.id != null) {
-                          final updatedOrder =
-                              await FireStoreUtils.getOrderById(
-                                  controller.currentOrder.value.id!);
-                          if (updatedOrder != null) {
-                            controller.currentOrder.value = updatedOrder;
-                            controller.update();
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: RoundedButtonFill(
+                        title: "Accept".tr,
+                        width: 24,
+                        height: 5.5,
+                        borderRadius: 10,
+                        color: AppThemeData.success400,
+                        textColor: AppThemeData.grey50,
+                        onPress: () async {
+                          AppLogger.log('User clicked Accept Order button',
+                              tag: 'UserAction');
+                          await controller.acceptOrder();
+                          // Manual refresh: fetch latest order and update controller
+                          if (controller.currentOrder.value.id != null) {
+                            final updatedOrder =
+                                await FireStoreUtils.getOrderById(
+                                    controller.currentOrder.value.id!);
+                            if (updatedOrder != null) {
+                              controller.currentOrder.value = updatedOrder;
+                              controller.update();
+                            }
                           }
-                        }
-                      },
-                    ),
-                  )
-                ],
+                        },
+                      ),
+                    )
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
             ],
