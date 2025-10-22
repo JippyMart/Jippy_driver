@@ -35,9 +35,49 @@ import '../order_list_screen/order_details_screen.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final bool? isAppBarShow;
   const HomeScreen({super.key, this.isAppBarShow});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
+
+  @override
+  void initState() {
+  super.initState();
+  WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+  super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if ((state == AppLifecycleState.paused || state == AppLifecycleState.inactive)
+        && ModalRoute.of(context)?.isCurrent == true) {
+      // Only enter PiP if this screen is currently visible
+      enterPipMode();
+    } else {
+      isInPipMode.value = false;
+    }
+  }
+
+
+  Future<void> enterPipMode() async {
+  try {
+  await AndroidPIP().enterPipMode(aspectRatio: [7, 9]);
+  isInPipMode.value = true;
+  } catch (e) {
+  debugPrint("Error entering PiP: $e");
+  }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -47,7 +87,7 @@ class HomeScreen extends StatelessWidget {
       init: HomeController(),
       builder: (controller) {
         return Scaffold(
-          appBar: isAppBarShow == true
+          appBar: widget.isAppBarShow == true
               ? AppBar(
                   backgroundColor: themeChange.getThem()
                       ? AppThemeData.grey900
@@ -1082,7 +1122,7 @@ Obx(
                                 ),
                               ),
                               Text(
-                                "${controller.driverToRestaurantCharge.value} + ${controller.restaurantToCustomerCharge.value} = ${controller.totalCalculatedCharge.value}",
+                                "${controller.driverToRestaurantCharge.value.toInt()} + ${controller.restaurantToCustomerCharge.value.toInt()} = ${controller.totalCalculatedCharge.value.toInt()}",
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontFamily: AppThemeData.semiBold,
@@ -1185,11 +1225,9 @@ Obx(
                                     ),
                                   ),
                                   Text(
-                                    // Calculate total: delivery charge + surge fee
-                                    // "${(23.00 + surgeFee).toStringAsFixed(2)}",
-                                    "${double.parse(controller.currentOrder.value.tipAmount
-                                        .toString())+ controller.totalCalculatedCharge.value + (surgeFee)}",
-                                    // (surgeFee).toStringAsFixed(2),
+                                    "${(double.parse(controller.currentOrder.value.tipAmount.toString())
+                                        + controller.totalCalculatedCharge.value
+                                        + surgeFee).toInt()}",
                                     textAlign: TextAlign.start,
                                     style: TextStyle(
                                       fontFamily: AppThemeData.bold,
@@ -1197,6 +1235,16 @@ Obx(
                                       fontSize: 18,
                                     ),
                                   ),
+                                  // Text(
+                                  //   "${double.parse(controller.currentOrder.value.tipAmount
+                                  //       .toString())+ controller.totalCalculatedCharge.value + (surgeFee)}",
+                                  //   textAlign: TextAlign.start,
+                                  //   style: TextStyle(
+                                  //     fontFamily: AppThemeData.bold,
+                                  //     color: AppThemeData.primary500,
+                                  //     fontSize: 18,
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                             ),

@@ -107,6 +107,11 @@ class PhoneNumberScreen extends StatelessWidget {
                         controller.countryCodeEditingController.value.text =
                             value.dialCode.toString();
                       },
+                      initialSelection:
+                      controller.countryCodeEditingController.value.text.isNotEmpty
+                          ? controller.countryCodeEditingController.value.text
+                          : 'IN', // Default to India
+                      countryFilter: ['IN'], // <-- Only allow India
                       dialogTextStyle: TextStyle(
                           color: themeChange.getThem()
                               ? AppThemeData.grey50
@@ -116,10 +121,7 @@ class PhoneNumberScreen extends StatelessWidget {
                       dialogBackgroundColor: themeChange.getThem()
                           ? AppThemeData.grey800
                           : AppThemeData.grey100,
-                      initialSelection:
-                          controller.countryCodeEditingController.value.text,
-                      comparator: (a, b) =>
-                          b.name!.compareTo(a.name.toString()),
+                      comparator: (a, b) => b.name!.compareTo(a.name.toString()),
                       textStyle: TextStyle(
                           fontSize: 14,
                           color: themeChange.getThem()
@@ -138,84 +140,132 @@ class PhoneNumberScreen extends StatelessWidget {
                           fontFamily: AppThemeData.medium),
                     ),
                   ),
+                  // TextFieldWidget(
+                  //   title: 'Phone Number'.tr,
+                  //   controller: controller.phoneNUmberEditingController.value,
+                  //   hintText: 'Enter Phone Number'.tr,
+                  //   textInputType: const TextInputType.numberWithOptions(
+                  //       signed: true, decimal: true),
+                  //   textInputAction: TextInputAction.done,
+                  //   inputFormatters: [
+                  //     FilteringTextInputFormatter.allow(RegExp('[0-9]')),
+                  //   ],
+                  //   prefix: CountryCodePicker(
+                  //     onChanged: (value) {
+                  //       controller.countryCodeEditingController.value.text =
+                  //           value.dialCode.toString();
+                  //     },
+                  //     dialogTextStyle: TextStyle(
+                  //         color: themeChange.getThem()
+                  //             ? AppThemeData.grey50
+                  //             : AppThemeData.grey900,
+                  //         fontWeight: FontWeight.w500,
+                  //         fontFamily: AppThemeData.medium),
+                  //     dialogBackgroundColor: themeChange.getThem()
+                  //         ? AppThemeData.grey800
+                  //         : AppThemeData.grey100,
+                  //     initialSelection:
+                  //         controller.countryCodeEditingController.value.text,
+                  //     comparator: (a, b) =>
+                  //         b.name!.compareTo(a.name.toString()),
+                  //     textStyle: TextStyle(
+                  //         fontSize: 14,
+                  //         color: themeChange.getThem()
+                  //             ? AppThemeData.grey50
+                  //             : AppThemeData.grey900,
+                  //         fontFamily: AppThemeData.medium),
+                  //     searchDecoration: InputDecoration(
+                  //         iconColor: themeChange.getThem()
+                  //             ? AppThemeData.grey50
+                  //             : AppThemeData.grey900),
+                  //     searchStyle: TextStyle(
+                  //         color: themeChange.getThem()
+                  //             ? AppThemeData.grey50
+                  //             : AppThemeData.grey900,
+                  //         fontWeight: FontWeight.w500,
+                  //         fontFamily: AppThemeData.medium),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
-            bottomNavigationBar: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      vertical: Platform.isAndroid ? 10 : 30),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                                text: 'Log in with'.tr,
-                                style: TextStyle(
-                                  color: themeChange.getThem()
-                                      ? AppThemeData.grey50
-                                      : AppThemeData.grey900,
-                                  fontFamily: AppThemeData.medium,
-                                  fontWeight: FontWeight.w500,
-                                )),
-                            const WidgetSpan(
-                                child: SizedBox(
-                              width: 10,
-                            )),
-                            TextSpan(
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Get.offAll(const LoginScreen());
-                                  },
-                                text: 'E-mail'.tr,
-                                style: const TextStyle(
-                                    color: AppThemeData.secondary300,
+            bottomNavigationBar: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: Platform.isAndroid ? 10 : 30),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                  text: 'Log in with'.tr,
+                                  style: TextStyle(
+                                    color: themeChange.getThem()
+                                        ? AppThemeData.grey50
+                                        : AppThemeData.grey900,
                                     fontFamily: AppThemeData.medium,
                                     fontWeight: FontWeight.w500,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor:
-                                        AppThemeData.secondary300)),
-                          ],
+                                  )),
+                              const WidgetSpan(
+                                  child: SizedBox(
+                                width: 10,
+                              )),
+                              TextSpan(
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Get.offAll(const LoginScreen());
+                                    },
+                                  text: 'E-mail'.tr,
+                                  style: const TextStyle(
+                                      color: AppThemeData.secondary300,
+                                      fontFamily: AppThemeData.medium,
+                                      fontWeight: FontWeight.w500,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor:
+                                          AppThemeData.secondary300)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                InkWell(
-                  onTap: () {
-                    if (controller
-                        .phoneNUmberEditingController.value.text.isEmpty) {
-                      ShowToastDialog.showToast(
-                          "Please enter mobile number".tr);
-                    } else {
-                      controller.sendCode();
-                    }
-                  },
-                  child: Container(
-                    color: AppThemeData.driverApp300,
-                    width: Responsive.width(100, context),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Text(
-                        "Send Code".tr,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: themeChange.getThem()
-                              ? AppThemeData.grey50
-                              : AppThemeData.grey50,
-                          fontSize: 16,
-                          fontFamily: AppThemeData.medium,
-                          fontWeight: FontWeight.w400,
+                  InkWell(
+                    onTap: () {
+                      if (controller
+                          .phoneNUmberEditingController.value.text.isEmpty) {
+                        ShowToastDialog.showToast(
+                            "Please enter mobile number".tr);
+                      } else {
+                        controller.sendCode();
+                      }
+                    },
+                    child: Container(
+                      color: AppThemeData.driverApp300,
+                      width: Responsive.width(100, context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Text(
+                          "Send Code".tr,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: themeChange.getThem()
+                                ? AppThemeData.grey50
+                                : AppThemeData.grey50,
+                            fontSize: 16,
+                            fontFamily: AppThemeData.medium,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         });

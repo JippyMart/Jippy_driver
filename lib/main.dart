@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:android_pip/android_pip.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:driver/app/splash_screen.dart';
 import 'package:driver/constant/constant.dart';
@@ -78,21 +76,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       AudioPlayerService.initAudio();
-      enterPipMode();
+      // enterPipMode();
     }else{
       isInPipMode.value = false;
     }
     getCurrentAppTheme();
   }
 
-  Future<void> enterPipMode() async {
-    try {
-      await AndroidPIP().enterPipMode(aspectRatio: [7, 9]);
-      isInPipMode.value = true; // 👈 notify globally
-    } catch (e) {
-      debugPrint("Error entering PiP: $e");
-    }
-  }
+  // Future<void> enterPipMode() async {
+  //   try {
+  //     await AndroidPIP().enterPipMode(aspectRatio: [7, 9]);
+  //     isInPipMode.value = true; // 👈 notify globally
+  //   } catch (e) {
+  //     debugPrint("Error entering PiP: $e");
+  //   }
+  // }
 
   void getCurrentAppTheme() async {
     themeChangeProvider.darkTheme =
